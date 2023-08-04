@@ -1,2 +1,3 @@
-# RestaurantManagementSystem
+# Ecommerce PLATFORM
+
 Gonic FULLBUILD
