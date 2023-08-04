@@ -1,5 +1,9 @@
 package database
 
+import (
+	"errors"
+)
+
 var {
 	ErrorCantFindProdruct = errors.New("Can't find product")
 	ErrorCantFindUser = errors.New("Can't find user, this userId is not valid")

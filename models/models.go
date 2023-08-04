@@ -21,7 +21,7 @@ type User struct {
 	Updated_At time.Time                       `json:"updated_at"`
 	User_ID string                             `json:"user_id"`
 	UserCart []ProductUser                     `json:"usercart" bson:"usercart"`
-	Adress_Details []Address                   `json:"adress" bson:"adress"`
+	Address_Details []Address                   `json:"adress" bson:"adress"`
 	Order_History []Order                      `json:"order_history" bson:"order_history"`
 	Order_In_Progress []Order                  `json:"order_in_progress" bson:"order_in_progress"`
 	Order_In_Delivery []Order                  `json:"order_in_delivery" bson:"order_in_delivery"`
