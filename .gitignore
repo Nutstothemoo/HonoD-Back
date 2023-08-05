@@ -9,3 +9,4 @@
 /.env.test
 /var/
 /vendor/
+/docker-compose.yml
