@@ -3,15 +3,17 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"ginapp/database"
 	"ginapp/models"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo"	
 )
 var UserCollection *mongo.Collection = database.UserData(database.Client, "Users")
 var ProductCollection *mongo.Collection = database.ProductData(database.Client, "Products")
@@ -146,7 +148,7 @@ func SearchProduct() gin.HandlerFunc {
 		defer cancel()
 		cursor, err := ProductCollection.Find(ctx, bson.D{{}})
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, "Someting Went Wrong Please Try After Some Time")
+			c.IndentedJSON(http.StatusInternalServerError, "Someting Went Wrong when finding the cursor")
 			return
 		}
 		err = cursor.All(ctx, &productlist)
@@ -163,7 +165,6 @@ func SearchProduct() gin.HandlerFunc {
 		}
 		defer cancel()
 		c.IndentedJSON(200, productlist)
-
 	}
 }
 

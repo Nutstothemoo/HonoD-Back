@@ -154,7 +154,7 @@ func (app *Application) BuyFromCart() gin.HandlerFunc {
 
 func (app *Application) InstantBuy() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		UserQueryID := c.Query("userid")
+		UserQueryID := c.Query("id")
 		if UserQueryID == "" {
 			log.Println("UserID is empty")
 			_ = c.AbortWithError(http.StatusBadRequest, errors.New("UserID is empty"))

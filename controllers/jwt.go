@@ -2,13 +2,10 @@ package controllers
 
 import (
 	"log"
-	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+
+	"golang.org/x/crypto/bcrypt"
 )
-var UserCollection *mongo.Collection = database.UserData(database.Client, "Users")
-var ProductCollection *mongo.Collection = database.ProductData(database.Client, "Products")
-var Validate = validator.New()
+
 
 func HashPassword(password string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
