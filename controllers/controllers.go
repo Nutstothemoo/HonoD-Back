@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"ginapp/database"
 	"ginapp/models"
+	generate "ginapp/tokens"
 	"log"
 	"net/http"
 	"time"
@@ -13,7 +14,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"	
+	"go.mongodb.org/mongo-driver/mongo"
 )
 var UserCollection *mongo.Collection = database.UserData(database.Client, "Users")
 var ProductCollection *mongo.Collection = database.ProductData(database.Client, "Products")
@@ -121,7 +122,7 @@ func Login() gin.HandlerFunc {
 	}
 }
 
-func ProductViewerAdmin() gin.HandlerFunc {
+func AddProductViewerAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		var products models.Product
@@ -137,7 +138,7 @@ func ProductViewerAdmin() gin.HandlerFunc {
 			return
 		}
 		defer cancel()
-		c.JSON(http.StatusOK, "Successfully added our Product Admin!!")
+		c.JSON(http.StatusOK, "Successfully added our Product !!")
 	}
 }
 
