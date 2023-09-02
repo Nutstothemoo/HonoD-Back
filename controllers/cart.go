@@ -51,7 +51,7 @@ func (app *Application) AddToCart() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		err = database.AddProductToCart(ctx, app.prodCollection, app.userCollection, productID, userQueryID)
+		err = database.AddProductofCart(ctx, app.prodCollection, app.userCollection, productID, userQueryID)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 		}
@@ -63,7 +63,7 @@ func (app *Application) RemoveItem() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		productQueryID := c.Query("id")
 		if productQueryID == "" {
-			log.Println("product id is inavalid")
+			log.Println("product id is invalid")
 			_ = c.AbortWithError(http.StatusBadRequest, errors.New("product id is empty"))
 			return
 		}
@@ -83,7 +83,7 @@ func (app *Application) RemoveItem() gin.HandlerFunc {
 
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		err = database.RemoveCartItem(ctx, app.prodCollection, app.userCollection, ProductID, userQueryID)
+		err = database.RemoveProductofCart(ctx, app.prodCollection, app.userCollection, ProductID, userQueryID)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
@@ -144,7 +144,7 @@ func (app *Application) BuyFromCart() gin.HandlerFunc {
 		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
-		err := database.BuyItemFromCart(ctx, app.userCollection, userQueryID)
+		err := database.BuyProductFromCart(ctx, app.userCollection, userQueryID)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 		}

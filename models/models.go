@@ -21,7 +21,7 @@ type User struct {
 	Updated_At time.Time                       `json:"updated_at"`
 	User_ID string                             `json:"user_id"`
 	UserCart []ProductUser                     `json:"usercart" bson:"usercart"`
-	Address_Details []Address                   `json:"adress" bson:"adress"`
+	Address_Details []Address                  `json:"adress" bson:"adress"`
 	Order_History []Order                      `json:"order_history" bson:"order_history"`
 	Order_In_Progress []Order                  `json:"order_in_progress" bson:"order_in_progress"`
 	Order_In_Delivery []Order                  `json:"order_in_delivery" bson:"order_in_delivery"`
@@ -38,11 +38,11 @@ type User struct {
 	}
 
 type Product struct {
-	ID primitive.ObjectID                    `bson:"_id" json:"_id"`
-	Product_Name *string                     `json:"product_name" bson:"product_name"`
-	Price *uint                              `json:"price" bson:"price"`
-	Rating *uint8                            `json:"rating" bson:"rating"`
-	Image *string                            `json:"image" bson:"image"`
+	ID primitive.ObjectID                      `bson:"_id" json:"_id"`
+	Product_Name *string                       `json:"product_name" bson:"product_name"`
+  Price *uint64                              `json:"price" bson:"price"`
+	Rating *uint8                              `json:"rating" bson:"rating"`
+	Image *string                              `json:"image" bson:"image"`
 }	
 
 type ProductUser struct {
@@ -66,10 +66,10 @@ type Address struct {
 
 
 type Order struct {
-	ID primitive.ObjectID                        `json:"_id" bson:"_id"`
+	Order_ID primitive.ObjectID                  `json:"_id" bson:"_id"`
 	Order_Cart []ProductUser                     `bson:"order_cart" json:"order_cart" `
-	Ordered_At time.Time                         `bson:"ordered_at" json:"ordered_at"`
-	Price int                                    `bson:"price" json:"price"`
+	Orderered_At time.Time                       `bson:"ordered_at" json:"ordered_at"`
+	Price int                               `bson:"price" json:"price"`
 	Discount	float64                            `bson:"discount" json:"discount"`
 	Payment_Method Payement                      `bson:"payment_method" json:"payment_method"`
 }

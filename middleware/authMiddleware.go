@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func Authentification() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ClientToken := c.Request.Header.Get("token")
 		if ClientToken == "" {
