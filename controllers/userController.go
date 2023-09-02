@@ -204,3 +204,34 @@ func SearchProductByQuery() gin.HandlerFunc {
 		c.IndentedJSON(200, searchproducts)
 	}
 }
+
+func GetUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		var user models.User
+		user_id := c.Query("id")
+		if user_id == "" {
+			c.Header("Content-Type", "application/json")
+			c.JSON(http.StatusNotFound, gin.H{"error": "invalid id"})
+			c.Abort()
+			return
+		}
+		usert_id, _ := primitive.ObjectIDFromHex(user_id)
+		err := UserCollection.FindOne(ctx, bson.M{"_id": usert_id}).Decode(&user)
+		if err != nil {
+			log.Println(err)
+			c.IndentedJSON(500, "not id found")
+			return
+		}
+		return 
+
+
+	}
+
+}
+func GetUserByID() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		
+	}
+}

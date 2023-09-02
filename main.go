@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
+	err := godotenv.Load(".env")
 	if err != nil {
     log.Println("Error loading .env file")
   }
@@ -21,7 +21,6 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-
 	app:= controllers.NewApplication(database.ProductData(database.Client, "Products"), database.UserData(database.Client, "Users"))
 	
 	r := gin.New()
