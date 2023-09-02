@@ -6,6 +6,7 @@ import (
 	"ginapp/database"
 	"ginapp/models"
 	generate "ginapp/tokens"
+	"ginapp/utils"
 	"log"
 	"net/http"
 	"time"
@@ -56,7 +57,7 @@ func SignUp() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Phone is already in use"})
 			return
 		}
-		password := HashPassword(*user.Password)
+		password := utils.HashPassword(*user.Password)
 		user.Password = &password
 
 		user.Created_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
@@ -107,7 +108,7 @@ func Login() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "login or password incorrect"})
 			return
 		}
-		PasswordIsValid, msg := VerifyPassword(*user.Password, *founduser.Password)
+		PasswordIsValid, msg := utils.VerifyPassword(*user.Password, *founduser.Password)
 		defer cancel()
 		if !PasswordIsValid {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})

@@ -12,16 +12,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-
 var (
-	ErrorCantFindProduct = errors.New("Can't find product")
-	ErrorCantDecodeProduct = errors.New("Can't decode product")
-	ErrorUserIdisNotValid = errors.New("This userId is not valid")
-	ErrorCantFindUser = errors.New("Can't find user, this userId is not valid")
-	ErrorCantUpdateUser = errors.New("Can't update user")
-	ErrorCantGetItemFromCart = errors.New("Can't get item from cart")
-	ErrorCantAddItemToCart = errors.New("Can't add item to cart")
-	ErrorCantRemoveItemFromCart = errors.New("Can't remove item from cart")
+	ErrorCantFindProduct = errors.New("can't find product")
+	ErrorCantDecodeProduct = errors.New("can't decode product")
+	ErrorUserIdisNotValid = errors.New("this userId is not valid")
+	ErrorCantFindUser = errors.New("can't find user, this userId is not valid")
+	ErrorCantUpdateUser = errors.New("can't update user")
+	ErrorCantGetItemFromCart = errors.New("can't get item from cart")
+	ErrorCantAddItemToCart = errors.New("can't add item to cart")
+	ErrorCantRemoveItemFromCart = errors.New("can't remove item from cart")
 )
 
 func AddProductofCart(ctx context.Context, prodCollection, userCollection *mongo.Collection, productID primitive.ObjectID, userID string ) error{
@@ -138,8 +137,12 @@ func InstantBuyer(ctx context.Context, prodCollection, userCollection *mongo.Col
 	err = prodCollection.FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: productID}}).Decode(&product_details)
 	if err != nil {
 		log.Println(err)
+	}	
+	if product_details.Price != nil {
+    orders_detail.Price = int(*product_details.Price)
+	} else {
+			orders_detail.Price = 0
 	}
-	orders_detail.Price = int(product_details.Price)
 	filter := bson.D{primitive.E{Key: "_id", Value: id}}
 	update := bson.D{{Key: "$push", Value: bson.D{primitive.E{Key: "orders", Value: orders_detail}}}}
 	_, err = userCollection.UpdateOne(ctx, filter, update)

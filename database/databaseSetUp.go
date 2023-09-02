@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"log"
 	"time"
-
+	"os"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func DBSet() *mongo.Client{
-	MongoDB:="mongodb://localhost:27017"
+
+	MongoDB:= os.Getenv("MONGO_URL")
 	fmt.Println("MongoDB URL: ", MongoDB)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -24,6 +25,8 @@ func DBSet() *mongo.Client{
 }
 
 var Client *mongo.Client = DBSet()
+
+// OPEN COLLECTION 
 
 
 func UserData(client *mongo.Client, collectionName string ) *mongo.Collection {
