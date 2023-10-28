@@ -27,7 +27,7 @@ func init() {
 }
 
 // Lists all objects in a bucket using pagination
-func main() {
+func ListObjectsV2() {
 	flag.Parse()
 	if len(bucketName) == 0 {
 		flag.PrintDefaults()

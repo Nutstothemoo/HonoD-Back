@@ -10,6 +10,9 @@ type User struct {
 	ID primitive.ObjectID                      `json:"_id" bson:"_id"`
 	First_Name *string                         `json:"first_name" validate:"required,min=2,max=100"`
 	Last_Name *string                          `json:"last_name" validate:"required,min=2,max=100"`
+	Avatar    string                           `json:"avatar"`
+	FacebookID *string                         `json:"facebookId"`
+	GoogleID *string													 `json:"googleId"`
 	Username *string                           `json:"username" validate:"required,min=2,max=100"`
 	Password *string                           `json:"password"`
 	Email *string                              `json:"email" validate:"required"`
@@ -30,10 +33,6 @@ type User struct {
 	Order_Refunded []Order                     `json:"order_refunded" bson:"order_refunded"`
 	Order_Returned []Order                     `json:"order_returned" bson:"order_returned"`
 	Order_Awaiting_Payment []Order             `json:"order_awaiting_payment" bson:"order_awaiting_payment"`
-	Order_Awaiting_Payment_Expired []Order     `json:"order_awaiting_payment_expired" bson:"order_awaiting_payment_expired"`
-	Order_Awaiting_Payment_Canceled []Order    `json:"order_awaiting_payment_canceled" bson:"order_awaiting_payment_canceled"`
-	Order_Awaiting_Payment_Refunded []Order    `json:"order_awaiting_payment_refunded" bson:"order_awaiting_payment_refunded"`
-	Order_Awaiting_Payment_Returned []Order    `json:"order_awaiting_payment_returned" bson:"order_awaiting_payment_returned"`
 	Order_Status []Order                       `json:"orders" bson:"orders"`
 	}
 
@@ -78,3 +77,32 @@ type Payement struct {
 	Digital bool                                  `bson:"digital"`
 	COD bool                                      `bson:"cod"`
 }
+
+type Contact struct {
+	ID        string `json:"id"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Phone     string `json:"phone"`
+	Birthday  string `json:"birthday"`
+	ZipCode   string `json:"zipCode"`
+	FederalTaxNumber string `json:"federalTaxNumber"`
+}
+
+type MetaUserData struct {
+	ExternalID string `json:"external_id"`
+	Em         string `json:"em"`
+	Ph         string `json:"ph"`
+	Fn         string `json:"fn"`
+	Ln         string `json:"ln"`
+}
+
+// type User struct {
+// 	ID       string   `json:"id"`
+// 	FirstName string `json:"firstName"`
+// 	LastName  string `json:"lastName"`
+// 	Avatar    string `json:"avatar"`
+// 	Email     string `json:"email"`
+// 	Contact   Contact `json:"contact"`
+// 	FacebookID string `json:"facebookId"`
+// 	MetaUserData MetaUserData `json:"metaUserData"`
+// }

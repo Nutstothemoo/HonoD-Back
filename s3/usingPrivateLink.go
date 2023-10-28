@@ -15,8 +15,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 )
 
+err := godotenv.Load(".env")
+if err != nil {
+	log.Println("Error loading .env file")
+}
+
 const (
-	bucketName  = "myBucketName"
+	// bucketName  = "myBucketName"
 	accountID   = "123456789012"
 	accessPoint = "accesspointname"
 

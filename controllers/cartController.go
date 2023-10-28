@@ -9,6 +9,7 @@ import (
 
 	"ginapp/database"
 	"ginapp/models"
+	"ginapp/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -173,6 +174,16 @@ func (app *Application) InstantBuy() gin.HandlerFunc {
 
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
+		// Générer un QR code avec l'ID du produit
+		qrCodeData := "ProductID: " + ProductQueryID
+
+		err = utils.GenerateAndSaveQRCode(qrCodeData)		
+		if err != nil {
+				log.Println("Erreur lors de la génération et de l'enregistrement du QR code:", err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
+		}
+
 		err = database.InstantBuyer(ctx, app.prodCollection, app.userCollection, productID, UserQueryID)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)

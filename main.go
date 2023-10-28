@@ -3,7 +3,7 @@ package main
 import (
 	"ginapp/controllers"
 	"ginapp/database"
-	"ginapp/middleware"
+	// "ginapp/middleware"
 	"ginapp/routes"
 	"log"
 	"os"
@@ -21,6 +21,7 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
 	app:= controllers.NewApplication(database.ProductData(database.Client, "Products"), database.UserData(database.Client, "Users"))
 	
 	r := gin.New()
@@ -29,13 +30,13 @@ func main() {
 	// r.Use(cors.Default())
 	routes.UserRoutes(r)
 
-	r.Use(middleware.Authentification())
+	// r.Use(middleware.Authentification())
 
 	r.GET("/products", app.AddToCart())
 	r.GET("/removeitem", app.RemoveItem())
 	r.GET("/cartcheckout", app.BuyFromCart())
 	r.GET("/instantbuy", app.InstantBuy())
 	r.Use(gin.Recovery())	
-
-	r.Run(":"+ port ) // listen and serve on 0.0.0.0:8080
+	log.Println("http://localhost:" + port)
+	r.Run("localhost:"+ port ) // listen and serve on 0.0.0.0:8080
 }

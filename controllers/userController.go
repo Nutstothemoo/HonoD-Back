@@ -77,9 +77,6 @@ func SignUp() gin.HandlerFunc {
 		user.Order_Returned = make([]models.Order, 0)
 		user.Order_Canceled = make([]models.Order, 0)		
 		user.Order_Awaiting_Payment = make([]models.Order, 0)
-		user.Order_Awaiting_Payment_Expired = make([]models.Order, 0)
-		user.Order_Awaiting_Payment_Refunded = make([]models.Order, 0)
-		user.Order_Awaiting_Payment_Returned = make([]models.Order, 0)
 		user.Order_History = make([]models.Order,0)
 		user.Order_Status = make([]models.Order, 0)
 		_, inserterr := UserCollection.InsertOne(ctx, user)
@@ -224,14 +221,5 @@ func GetUser() gin.HandlerFunc {
 			c.IndentedJSON(500, "not id found")
 			return
 		}
-		return 
-
-
-	}
-
-}
-func GetUserByID() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		
 	}
 }
