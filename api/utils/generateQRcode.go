@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -11,6 +12,22 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/skip2/go-qrcode"
 )
+
+func save(filename string, data []byte) error {
+	
+	file, err := os.Create(filename)
+	if err != nil {
+			return err
+	}
+	defer file.Close()
+
+	_, err = file.Write(data)
+	if err != nil {
+			return err
+	}
+
+	return nil
+}
 
 func GenerateAndSaveQRCodeOnDisk( data string) error {
 
@@ -25,7 +42,7 @@ func GenerateAndSaveQRCodeOnDisk( data string) error {
 			return err
 	}
 
-	err = savePNG("qrcode.png", png)
+	err = save("qrcode.png", png)
 	if err != nil {
 			fmt.Println("Erreur lors de l'enregistrement du fichier PNG:", err)
 			return err

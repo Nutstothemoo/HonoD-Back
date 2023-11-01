@@ -2,16 +2,13 @@ package controllers
 
 import (
 	"context"
+	"ginapp/api/models"
+	"ginapp/database"
 	"net/http"
 	"time"
 
-	"ginapp/database"
-	"ginapp/api/models"
-	"ginapp/utils"
-
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -21,7 +18,8 @@ func (app *Application) GetEvents() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		events, err := database.GetEvents(ctx, app.prodCollection)
+		events, err := EventCollection.Find(ctx, models.Event{})
+
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
@@ -29,16 +27,15 @@ func (app *Application) GetEvents() gin.HandlerFunc {
 		c.IndentedJSON(http.StatusOK, events)
 
 	}
-		
-
 }
 
 func (app *Application) GetEventByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		eventID := c.Param("id")
+		
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		event, err := database.GetEventByID(ctx, app.prodCollection, eventID)
+		event, err := EventCollection.Find(ctx, bson.M{"_id": eventID})
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
@@ -65,3 +62,35 @@ func AddEvent() gin.HandlerFunc {
 	}
 }
 
+func GetEventFromDateToDate() gin.HandlerFunc {
+	return func (c *gin.Context) {
+		fromDate := c.Param("fromDate")
+		toDate := c.Param("toDate")
+		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		events, err := EventCollection.Find(ctx, models.Event{FromDate: fromDate, ToDate: toDate})
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+		c.IndentedJSON(http.StatusOK, events)
+	}
+}
+
+func UpdateEvent() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var event models.Event
+		if err := c.BindJSON(&event); err != nil {
+			c.IndentedJSON(http.StatusBadRequest, err)
+			return
+		}
+		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		err := EventCollection.FindOneAndUpdate(ctx, models.Event{ID: event.ID}, event)
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+		c.IndentedJSON(201, "Successfully updated the event")
+	}
+}

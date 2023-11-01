@@ -12,6 +12,7 @@ type User struct {
 	Avatar    string                           `json:"avatar"`
 	FacebookID *string                         `json:"facebookId"`
 	GoogleID *string													 `json:"googleId"`
+	User_ID string                             `json:"user_id"`
 	Username *string                           `json:"username" validate:"required,min=2,max=100"`
 	Password *string                           `json:"password"`
 	Email *string                              `json:"email" validate:"required"`
@@ -21,31 +22,25 @@ type User struct {
 	Refresh_Token *string                      `json:"refresh_token"`
 	Created_At time.Time                       `json:"created_at"`
 	Updated_At time.Time                       `json:"updated_at"`
-	User_ID string                             `json:"user_id"`
-	UserCart []ProductUser                     `json:"usercart" bson:"usercart"`
+	UserCart []TicketUser                     `json:"usercart" bson:"usercart"`
 	Address_Details []Address                  `json:"adress" bson:"adress"`
 	Order_History []Order                      `json:"order_history" bson:"order_history"`
-	Order_In_Progress []Order                  `json:"order_in_progress" bson:"order_in_progress"`
-	Order_In_Delivery []Order                  `json:"order_in_delivery" bson:"order_in_delivery"`
-	Order_Delivered []Order                    `json:"order_delivered" bson:"order_delivered"`
 	Order_Canceled []Order                     `json:"order_canceled" bson:"order_canceled"`
 	Order_Refunded []Order                     `json:"order_refunded" bson:"order_refunded"`
-	Order_Returned []Order                     `json:"order_returned" bson:"order_returned"`
-	Order_Awaiting_Payment []Order             `json:"order_awaiting_payment" bson:"order_awaiting_payment"`
-	Order_Status []Order                       `json:"orders" bson:"orders"`
 	}
 
-type Product struct {
+type Ticket struct {
 	ID primitive.ObjectID                      `bson:"_id" json:"_id"`
-	Product_Name *string                       `json:"product_name" bson:"product_name"`
+	Ticket_name *string                       `json:"ticket_name" bson:"ticket_name"`
   Price *uint64                              `json:"price" bson:"price"`
 	Rating *uint8                              `json:"rating" bson:"rating"`
 	Image *string                              `json:"image" bson:"image"`
+	EventID    primitive.ObjectID 							`bson:"event_id" json:"event_id"`
 }	
 
-type ProductUser struct {
+type TicketUser struct {
 	ID primitive.ObjectID                    `json:"_id" bson:"_id"`
-	Product_Name *string                     `json:"product_name" bson:"product_name"`
+	Ticket_name *string                      `json:"ticket_name" bson:"ticket_name"`
 	Price *uint64                            `json:"price" bson:"price"`
 	Rating *uint8                            `json:"rating" bson:"rating"`
 	Image *string                            `json:"image" bson:"image"`
@@ -63,9 +58,9 @@ type Address struct {
 
 type Order struct {
 	Order_ID primitive.ObjectID                  `json:"_id" bson:"_id"`
-	Order_Cart []ProductUser                     `bson:"order_cart" json:"order_cart" `
+	Order_Cart []TicketUser                      `bson:"order_cart" json:"order_cart" `
 	Orderered_At time.Time                       `bson:"ordered_at" json:"ordered_at"`
-	Price int                               `bson:"price" json:"price"`
+	Price int                                    `bson:"price" json:"price"`
 	Discount	float64                            `bson:"discount" json:"discount"`
 	Payment_Method Payement                      `bson:"payment_method" json:"payment_method"`
 }
