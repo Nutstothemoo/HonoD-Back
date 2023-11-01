@@ -2,7 +2,6 @@ package models
 
 import (
 	"time"
-
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -62,8 +61,6 @@ type Address struct {
 	Country *string                            `json:"country" bson:"country"`
 }
 
-
-
 type Order struct {
 	Order_ID primitive.ObjectID                  `json:"_id" bson:"_id"`
 	Order_Cart []ProductUser                     `bson:"order_cart" json:"order_cart" `
@@ -96,13 +93,3 @@ type MetaUserData struct {
 	Ln         string `json:"ln"`
 }
 
-// type User struct {
-// 	ID       string   `json:"id"`
-// 	FirstName string `json:"firstName"`
-// 	LastName  string `json:"lastName"`
-// 	Avatar    string `json:"avatar"`
-// 	Email     string `json:"email"`
-// 	Contact   Contact `json:"contact"`
-// 	FacebookID string `json:"facebookId"`
-// 	MetaUserData MetaUserData `json:"metaUserData"`
-// }

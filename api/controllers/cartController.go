@@ -5,10 +5,11 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"ginapp/database"
-	"ginapp/models"
+	"ginapp/api/models"
 	"ginapp/utils"
 
 	"github.com/gin-gonic/gin"
@@ -154,6 +155,9 @@ func (app *Application) BuyFromCart() gin.HandlerFunc {
 }
 
 func (app *Application) InstantBuy() gin.HandlerFunc {
+	s3BucketName := os.Getenv("S3_BUCKET_NAME")
+	
+
 	return func(c *gin.Context) {
 		UserQueryID := c.Query("userId")
 		if UserQueryID == "" {
@@ -177,7 +181,7 @@ func (app *Application) InstantBuy() gin.HandlerFunc {
 		// Générer un QR code avec l'ID du produit
 		qrCodeData := "ProductID: " + ProductQueryID
 
-		err = utils.GenerateAndSaveQRCode(qrCodeData)		
+		err = utils.GenerateAndUploadQRCode(qrCodeData, s3BucketName, "qrcode.png")		
 		if err != nil {
 				log.Println("Erreur lors de la génération et de l'enregistrement du QR code:", err)
 				c.AbortWithStatus(http.StatusInternalServerError)

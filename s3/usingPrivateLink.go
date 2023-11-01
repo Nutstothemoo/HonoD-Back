@@ -15,10 +15,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 )
 
-err := godotenv.Load(".env")
-if err != nil {
-	log.Println("Error loading .env file")
-}
+// err := godotenv.Load(".env")
+
+// if err != nil {
+// 	log.Println("Error loading .env file")
+// }
 
 const (
 	// bucketName  = "myBucketName"
@@ -41,7 +42,7 @@ const (
 	vpcControlEndpoint = "https://control.vpce-0xxxxxxx-xxx8xxg.s3.us-west-2.vpce.amazonaws.com"
 )
 
-func main() {
+func CreateS3BucketAndAccessPoint() {
 	if len(bucketName) == 0 {
 		flag.PrintDefaults()
 		log.Fatalf("invalid parameters, bucket name required")

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"ginapp/database"
 	"ginapp/models"
-	generate "ginapp/tokens"
+	generate "ginapp/api/tokens"
 	"ginapp/utils"
 	"log"
 	"net/http"
