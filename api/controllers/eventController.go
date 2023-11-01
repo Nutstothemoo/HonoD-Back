@@ -14,7 +14,7 @@ import (
 
 var EventCollection *mongo.Collection = database.OpenCollection(database.Client, "Events")
 
-func (app *Application) GetEvents() gin.HandlerFunc {
+func GetEvents() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -29,7 +29,7 @@ func (app *Application) GetEvents() gin.HandlerFunc {
 	}
 }
 
-func (app *Application) GetEventByID() gin.HandlerFunc {
+func GetEventByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		eventID := c.Param("id")
 		
@@ -92,5 +92,19 @@ func UpdateEvent() gin.HandlerFunc {
 			return
 		}
 		c.IndentedJSON(201, "Successfully updated the event")
+	}
+}
+
+func DeleteEvent() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		eventID := c.Param("id")
+		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_, err := EventCollection.DeleteOne(ctx, bson.M{"_id": eventID})
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+		c.IndentedJSON(201, "Successfully deleted the event")
 	}
 }

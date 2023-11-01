@@ -7,7 +7,6 @@ import (
 	"ginapp/api/routeur"
 	"log"
 	"os"
-	"cors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -28,17 +27,14 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Logger())
 	
-	r.Use(cors.Default())
-		r.Use(middleware.Authentification())
+	// r.Use(cors.Default())
+	r.Use(middleware.Authentification())
 	routes.UserRoutes(r)
+	routes.EventRoutes(r)
+	routes.TicketRoutes(r)
+	// routes.CartRoutes(r)
 
-
-
-	// r.GET("/products", app.AddToCart())
-	// r.GET("/removeitem", app.RemoveItem())
-	// r.GET("/cartcheckout", app.BuyFromCart())
-	// r.GET("/instantbuy", app.InstantBuy())
 	r.Use(gin.Recovery())	
 	log.Println("http://localhost:" + port)
-	r.Run("localhost:"+ port ) // listen and serve on 0.0.0.0:8080
+	r.Run("localhost:"+ port ) 
 }

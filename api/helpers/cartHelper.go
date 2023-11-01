@@ -23,7 +23,7 @@ var (
 	ErrorCantRemoveItemFromCart = errors.New("can't remove item from cart")
 )
 
-func AddTicketToCart(ctx context.Context, ticketCollection, userCollection *mongo.Collection, ticketID primitive.ObjectID, userID string ) error{
+func AddTicketToCart(ctx context.Context, ticketCollection *mongo.Collection, userCollection *mongo.Collection, ticketID primitive.ObjectID, userID string ) error{
 
 		searchFromdb, err := ticketCollection.Find(ctx, bson.M{"_id": ticketID})
 		if err != nil {
@@ -50,7 +50,7 @@ func AddTicketToCart(ctx context.Context, ticketCollection, userCollection *mong
 		return nil
 	}
 
-func RemoveTicketfromCart(ctx context.Context, ticketCollection, userCollection *mongo.Collection, ticketID primitive.ObjectID, userID string) error {
+func RemoveTicketfromCart(ctx context.Context, ticketCollection *mongo.Collection, userCollection *mongo.Collection, ticketID primitive.ObjectID, userID string) error {
 	id, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		log.Println(err)
@@ -121,7 +121,7 @@ func BuyTicketFromCart(ctx context.Context, userCollection *mongo.Collection, us
 	return nil
 }
 
-func InstantBuyer(ctx context.Context, ticketCollection, userCollection *mongo.Collection, ticketID primitive.ObjectID, UserID string) error {
+func InstantBuyer(ctx context.Context, ticketCollection  *mongo.Collection, userCollection *mongo.Collection, ticketID primitive.ObjectID, UserID string) error {
 	id, err := primitive.ObjectIDFromHex(UserID)
 	if err != nil {
 		log.Println(err)

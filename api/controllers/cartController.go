@@ -10,7 +10,7 @@ import (
 
 	"ginapp/database"
 	"ginapp/api/models"
-	"ginapp/utils"
+	"ginapp/api/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,14 +19,16 @@ import (
 )
 
 type Application struct {
-	prodCollection *mongo.Collection
+	ticketCollection *mongo.Collection
 	userCollection *mongo.Collection
+	eventCollection *mongo.Collection
 }
 
 func NewApplication(prodCollection, userCollection *mongo.Collection) *Application {
 	return &Application{
-		prodCollection: prodCollection,
-		userCollection: userCollection,
+		ticketCollection *mongo.Collection,
+		userCollection *userCollection,
+		eventCollection *mongo.Collection
 	}
 }
 
