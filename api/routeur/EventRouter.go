@@ -13,7 +13,7 @@
 		incomingRoutes.POST("/events", controllers.AddEvent())
 		incomingRoutes.PUT("/events/:id", controllers.UpdateEvent())
 		incomingRoutes.DELETE("/events/:id", controllers.DeleteEvent())
-		incomingRoutes.GET("/events/:fromDate/:toDate", controllers.GetEventFromDateToDate())		
+		incomingRoutes.GET("/events/date/:fromDate/:toDate", controllers.GetEventFromDateToDate())		
 
 	}
 	

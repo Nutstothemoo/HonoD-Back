@@ -1,40 +1,70 @@
 package main
 
 import (
+	"context"
+	"firebase.google.com/go"
 	"ginapp/api/controllers"
-	"ginapp/database"
 	"ginapp/api/middleware"
 	"ginapp/api/routeur"
-	"log"
-	"os"
-
+	"ginapp/database"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"google.golang.org/api/option"	
+	"ginapp/auth" 
+	"log"
+	"os"
+	"github.com/fatih/color"
 )
+
+var (
+	app *firebase.App
+)
+
+func init() {
+	opt := option.WithCredentialsFile("credential.json")
+	var err error
+	app, err = firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+			log.Fatalf("error initializing app: %v\n", err)
+	}
+	log.Println(color.GreenString("Successfully connected to Firebase"))
+}
 
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
-    log.Println("Error loading .env file")
+    log.Println(color.RedString("Error loading .env file"))
   }
 	port:= os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	app:= controllers.NewApplication(database.ProductData(database.Client, "Products"), database.UserData(database.Client, "Users"))
-	
+	app:= controllers.NewApplication(
+		database.OpenCollection(database.Client, "Tickets"), 
+		database.OpenCollection(database.Client, "Users"),		
+		database.OpenCollection(database.Client, "Events"),
+	)
+
+	r := setupRouter(app)
+	log.Println(color.GreenString("http://localhost:" + port))
+	r.Run("localhost:"+ port ) 
+}
+
+func setupRouter(app *controllers.Application) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
-	
-	// r.Use(cors.Default())
+	r.POST("/googleAuth", gin.WrapF(auth.GoogleAuthHandler))
+  r.POST("/facebookAuth", gin.WrapF(auth.FacebookAuthHandler))
 	r.Use(middleware.Authentification())
+
 	routes.UserRoutes(r)
 	routes.EventRoutes(r)
 	routes.TicketRoutes(r)
-	// routes.CartRoutes(r)
+	routes.AdressRoutes(r)
+	routes.ArtistRoutes(r)
 
-	r.Use(gin.Recovery())	
-	log.Println("http://localhost:" + port)
-	r.Run("localhost:"+ port ) 
+	r.Use(gin.Recovery())
+
+	return r
 }

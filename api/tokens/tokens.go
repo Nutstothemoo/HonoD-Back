@@ -26,7 +26,7 @@ type SignedDetails struct {
 var UserData *mongo.Collection = database.UserData(database.Client, "Users")
 var SECRET_KEY = os.Getenv("SUPER_SECRET_KEY")
 
-func TokenGenerator(email string, firstname string, lastname string, uid string) (signedtoken string, signedrefreshtoken string, err error) {
+func TokenGenerator(email string, firstname string, lastname string, uid string, role string) (signedtoken string, signedrefreshtoken string, err error) {
 	claims := &SignedDetails{
 		Email:      email,
 		First_Name: firstname,

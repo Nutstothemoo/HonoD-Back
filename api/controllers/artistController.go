@@ -52,10 +52,10 @@ func AddArtist() gin.HandlerFunc {
 		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		err := database.AddArtist(ctx, artist)
+		_, err := ArtistCollection.InsertOne(ctx, artist)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
-			return
+				c.IndentedJSON(http.StatusInternalServerError, err)
+				return
 		}
 		c.IndentedJSON(201, "Successfully added the artist")
 	}

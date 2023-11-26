@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"ginapp/api/models"
 	generate "ginapp/api/tokens"
-	"ginapp/utils"
+	"ginapp/api/utils"
 	"log"
 	"net/http"
 	"time"
@@ -99,11 +99,10 @@ func Login() gin.HandlerFunc {
 			fmt.Println(msg)
 			return
 		}
-		token, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.First_Name, *founduser.Last_Name, founduser.User_ID)
+		token, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.First_Name, *founduser.Last_Name, founduser.User_ID, founduser.Role)		
 		defer cancel()
 		generate.UpdateAllTokens(token, refreshToken, founduser.User_ID)
 		c.JSON(http.StatusFound, founduser)
-
 	}
 }
 

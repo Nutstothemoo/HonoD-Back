@@ -6,7 +6,6 @@ import (
 	"ginapp/database"
 	"net/http"
 	"time"
-
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -53,7 +52,7 @@ func AddEvent() gin.HandlerFunc {
 		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		err := database.AddEvent(ctx, event)
+		_, err := EventCollection.InsertOne(ctx, event)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
@@ -68,8 +67,15 @@ func GetEventFromDateToDate() gin.HandlerFunc {
 		toDate := c.Param("toDate")
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		events, err := EventCollection.Find(ctx, models.Event{FromDate: fromDate, ToDate: toDate})
-		if err != nil {
+		filter := bson.M{
+			"startTime": bson.M{
+					"$gte": fromDate,
+					"$lte": toDate,
+			},
+	}
+	events, err := EventCollection.Find(ctx, filter)		
+
+	if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}

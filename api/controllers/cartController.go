@@ -7,28 +7,27 @@ import (
 	"net/http"
 	"os"
 	"time"
-
-	"ginapp/database"
 	"ginapp/api/models"
 	"ginapp/api/utils"
-
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+
+
 type Application struct {
-	ticketCollection *mongo.Collection
-	userCollection *mongo.Collection
-	eventCollection *mongo.Collection
+	TicketCollection *mongo.Collection
+	UserCollection   *mongo.Collection
+	EventCollection  *mongo.Collection
 }
 
-func NewApplication(prodCollection, userCollection *mongo.Collection) *Application {
+func NewApplication(ticketCollection, userCollection, eventCollection *mongo.Collection) *Application {
 	return &Application{
-		ticketCollection *mongo.Collection,
-		userCollection *userCollection,
-		eventCollection *mongo.Collection
+			TicketCollection: ticketCollection,
+			UserCollection:   userCollection,
+			EventCollection:  eventCollection,
 	}
 }
 
@@ -55,7 +54,7 @@ func (app *Application) AddToCart() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		err = database.AddProductofCart(ctx, app.prodCollection, app.userCollection, productID, userQueryID)
+		err = AddProductofCart(ctx, app.TicketCollection, app.UserCollection, productID, userQueryID)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 		}
@@ -66,6 +65,7 @@ func (app *Application) AddToCart() gin.HandlerFunc {
 func (app *Application) RemoveItem() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		productQueryID := c.Query("id")
+		
 		if productQueryID == "" {
 			log.Println("product id is invalid")
 			_ = c.AbortWithError(http.StatusBadRequest, errors.New("product id is empty"))
@@ -87,7 +87,7 @@ func (app *Application) RemoveItem() gin.HandlerFunc {
 
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		err = database.RemoveProductofCart(ctx, app.prodCollection, app.userCollection, ProductID, userQueryID)
+		err = RemoveProductofCart(ctx, app.UserCollection, ProductID, userQueryID)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
@@ -142,13 +142,21 @@ func GetItemFromCart() gin.HandlerFunc {
 func (app *Application) BuyFromCart() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userQueryID := c.Query("id")
+		productIDStr := c.Query("productID")
+		productID, err := primitive.ObjectIDFromHex(productIDStr)
+		if err != nil {
+			log.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 		if userQueryID == "" {
 			log.Panicln("user id is empty")
 			_ = c.AbortWithError(http.StatusBadRequest, errors.New("UserID is empty"))
 		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
-		err := database.BuyProductFromCart(ctx, app.userCollection, userQueryID)
+
+		err = BuyProductFromCart(ctx, app.TicketCollection, productID, userQueryID)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 		}
@@ -190,10 +198,49 @@ func (app *Application) InstantBuy() gin.HandlerFunc {
 				return
 		}
 
-		err = database.InstantBuyer(ctx, app.prodCollection, app.userCollection, productID, UserQueryID)
+		err = InstantBuyer(ctx, app.TicketCollection, app.UserCollection, productID, UserQueryID)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 		}
 		c.IndentedJSON(200, "Successully placed the order")
 	}
 }
+
+func RemoveProductofCart(ctx context.Context, userCollection *mongo.Collection, productID  primitive.ObjectID, userID string) error {
+	filter := bson.D{{"_id", userID}}
+	update := bson.D{{"$pull", bson.D{{"usercart", bson.D{{"_id", productID}}}}}}
+	_, err := userCollection.UpdateOne(ctx, filter, update)
+	return err
+}
+
+// BuyProductFromCart purchases a product from the user's cart in the database.
+func BuyProductFromCart(ctx context.Context,  userCollection *mongo.Collection, productID  primitive.ObjectID, userID string) error {
+	// This function depends on your application logic.
+	// You might need to remove the product from the user's cart and decrease the product's stock.
+	// Here is a simple example:
+	err := RemoveProductofCart(ctx, userCollection, productID, userID)
+	if err != nil {
+			return err
+	}
+	// You might need to update the product's stock in another collection.
+	// You would need to write that code here.
+	return nil
+}
+
+// InstantBuyer purchases a product instantly in the database.
+func InstantBuyer(ctx context.Context, ticketCollection *mongo.Collection, userCollection *mongo.Collection, productID primitive.ObjectID , userID string) error {
+	// This function depends on your application logic.
+	// You might need to decrease the product's stock.
+	// Here is a simple example:
+	// You might need to update the product's stock in another collection.
+	// You would need to write that code here.
+	return nil
+}
+
+func AddProductofCart(ctx context.Context,  ticketCollection *mongo.Collection, userCollection *mongo.Collection, productID primitive.ObjectID, userID string) error {
+	filter := bson.D{{"email", userID}}
+	update := bson.D{{"$push", bson.D{{"usercart", bson.D{{"_id", productID}}}}}}
+	_, err := userCollection.UpdateOne(ctx, filter, update)
+	return err
+}
+

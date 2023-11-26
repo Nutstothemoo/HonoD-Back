@@ -10,3 +10,4 @@
 /var/
 /vendor/
 /docker-compose.yml
+credential.json
