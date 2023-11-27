@@ -1,29 +1,33 @@
 package models
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Event struct {
-	ID               primitive.ObjectID `bson:"_id" json:"_id"`
-	Slug             string             `json:"slug"`
-	StartTime        int64              `json:"startTime"`
-	EndTime          int64              `json:"endTime"`
-	Timezone         string             `json:"timezone"`
-	Description      string             `json:"description"`
-	AddressVisibility string           `json:"addressVisibility"`
-	Geolocation      Geolocation        `json:"geolocation"`
-	IsFestival       bool               `json:"isFestival"`
-	Name             string             `json:"name"`
-	FeaturedText     string             `json:"featuredText"`
-	Artworks         []Artwork          `json:"artworks"`
-	CancelledAt      *int64             `json:"cancelledAt"`
-	Currency         string             `json:"currency"`
-	Tags             []Tag              `json:"tags"`
-	Dealer           Dealer             `json:"dealer"`
-	LaunchedAt       int64              `json:"launchedAt"`
-	IsSoldOut        bool               `json:"isSoldOut"`
-	MinTicketPrice   float64            `json:"minTicketPrice"`
+	ID                primitive.ObjectID `bson:"_id" json:"_id"`
+	Slug              string             `json:"slug"`
+	StartTime         int64              `json:"startTime"`
+	EndTime           int64              `json:"endTime"`
+	Timezone          string             `json:"timezone"`
+	Description       string             `json:"description"`
+	AddressVisibility string             `json:"addressVisibility"`
+	Geolocation       Geolocation        `json:"geolocation"`
+	IsFestival        bool               `json:"isFestival"`
+	Name              string             `json:"name"`
+	FeaturedText      string             `json:"featuredText"`
+	Artworks          []Artwork          `json:"artworks"`
+	CancelledAt       *int64             `json:"cancelledAt"`
+	Currency          string             `json:"currency"`
+	Tags              []Tag              `json:"tags"`
+	DealerID          primitive.ObjectID `bson:"dealer_id" json:"dealer_id"` // Changed from Dealer to DealerID
+	LaunchedAt        int64              `json:"launchedAt"`
+	IsSoldOut         bool               `json:"isSoldOut"`
+	MinTicketPrice    float64            `json:"minTicketPrice"`
+	CreatedAt         time.Time          `bson:"created_at" json:"created_at"` // Added
+	UpdatedAt         time.Time          `bson:"updated_at" json:"updated_at"` // Added
 }
 
 type Geolocation struct {

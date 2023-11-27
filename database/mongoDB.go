@@ -18,14 +18,13 @@ func DBSet() *mongo.Client{
     log.Println("Error loading .env file")
   }
 	MongoDB:= os.Getenv("MONGO_URL")
-	fmt.Println(color.GreenString("MongoDB URL: ", MongoDB))
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(MongoDB))
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(color.GreenString("Connected to MongoDB Database"))
+	fmt.Println(color.GreenString("Connected to MongoDB URL:", MongoDB))
 	return client
 }
 

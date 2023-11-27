@@ -10,9 +10,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"google.golang.org/api/option"	
-	"ginapp/auth" 
+	"ginapp/api/auth" 
 	"log"
-	controllers "ginapp/api/controllers"
+	"fmt"
 	"os"
 	"github.com/fatih/color"
 )
@@ -48,27 +48,37 @@ func main() {
 	)
 
 	r := setupRouter(app)
+	fmt.Println("╔════════════════════════════════════════╗")
 	log.Println(color.GreenString("http://localhost:" + port))
+	fmt.Println("╚════════════════════════════════════════╝")
 	r.Run("localhost:"+ port ) 
 }
+
+import "ginapp/api/routes"
 
 func setupRouter(app *controllers.Application) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.POST("/googleAuth", gin.WrapF(auth.GoogleAuthHandler))
-  r.POST("/facebookAuth", gin.WrapF(auth.FacebookAuthHandler))
-	r.Use(middleware.Authentification())
-
-	// ADMIN ROUTE
+	r.POST("/facebookAuth", gin.WrapF(auth.FacebookAuthHandler))
+	routes.UserRoutes(r)
+	routes.EventRoutes(r)
+	routes.TicketRoutes(r)
+	routes.AddressRoutes(r)
+	routes.ArtistRoutes(r)
+	routes.AdminRoutes(r) // Add this line
 
 	adminRoutes := r.Group("/admin")
 	adminRoutes.Use(middleware.AdminAuthentication())
+	routes.AdminEventRoutes(adminRoutes)
+	adminRoutes.POST("/event", controllers.AdminAddEvent())
+	adminRoutes.PUT("/event/", controllers.AdminUpdateEvent() )
+	adminRoutes.DELETE("/event", controllers.AdminDeleteEvent())// Fixed the function call
 	adminRoutes.PUT("/users/:id", controllers.AdminUpdateUser())
 	adminRoutes.DELETE("/users/:id", controllers.AdminDeleteUser())
 	adminRoutes.GET("/users/:id", controllers.AdminGetUser())
 
-	dealerRoutes := r.Group("/dealer")
-	dealerRoutes.Use(middleware.DealerAuthentication())
+	// USER ROUTE
 
 	routes.UserRoutes(r)
 	routes.EventRoutes(r)

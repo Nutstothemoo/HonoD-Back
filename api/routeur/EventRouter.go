@@ -10,15 +10,17 @@
 	
 		incomingRoutes.GET("/events", controllers.GetEvents())
 		incomingRoutes.GET("/events/:id", controllers.GetEventByID())
-		incomingRoutes.GET("/events/date/:fromDate/:toDate", controllers.GetEventFromDateToDate())		
+		incomingRoutes.GET("/events/date/:fromDate/:toDate", controllers.GetEventFromDateToDate())
+
 		dealerRoutes := incomingRoutes.Group("/dealer")
-    dealerRoutes.Use(middleware.DealerAuthentication())
-    dealerRoutes.POST("/events", controllers.AddEvent())
-    dealerRoutes.PUT("/events/:id", controllers.UpdateEvent())
-    dealerRoutes.DELETE("/events/:id", controllers.DeleteEvent())
+		
+			dealerRoutes.Use(middleware.DealerAuthentication())
+			dealerRoutes.POST("/events", controllers.AddEvent())
+			dealerRoutes.PUT("/events/:id", controllers.UpdateEvent())
+			dealerRoutes.DELETE("/events/:id", controllers.DeleteEvent())
 	}
 	
-	func AdminEventRoutes (incomingRoutes * gin.Engine){
+	func AdminEventRoutes (incomingRoutes *gin.RouterGroup){
 	
 		incomingRoutes.GET("/events", controllers.GetEvents())
 		incomingRoutes.GET("/events/:id", controllers.GetEventByID())
