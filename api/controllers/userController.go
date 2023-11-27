@@ -24,6 +24,11 @@ func SignUp() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+
+		// Set the default role to "user"
+		defaultRole := "user"
+		user.Role = &defaultRole
+
 		validationErr := Validate.Struct(user)
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr})
@@ -57,7 +62,7 @@ func SignUp() gin.HandlerFunc {
 		user.Updated_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.ID = primitive.NewObjectID()
 		user.User_ID = user.ID.Hex()
-		token, refreshtoken, _ := generate.TokenGenerator(*user.Email, *user.First_Name, *user.Last_Name, user.User_ID)
+		token, refreshtoken, _ := generate.TokenGenerator(*user.Email, *user.First_Name, *user.Last_Name, user.User_ID, *user.Role)
 		user.Token = &token
 		user.Refresh_Token = &refreshtoken
 		user.UserCart = make([]models.TicketUser, 0)
@@ -99,7 +104,7 @@ func Login() gin.HandlerFunc {
 			fmt.Println(msg)
 			return
 		}
-		token, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.First_Name, *founduser.Last_Name, founduser.User_ID, founduser.Role)		
+		token, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.First_Name, *founduser.Last_Name, founduser.User_ID, *founduser.Role)		
 		defer cancel()
 		generate.UpdateAllTokens(token, refreshToken, founduser.User_ID)
 		c.JSON(http.StatusFound, founduser)
@@ -117,6 +122,15 @@ func GetUser() gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "invalid id"})
 			c.Abort()
 			return
+		}
+		// Get the user ID from the Gin context
+		loggedInUserId := c.MustGet("userId").(string)
+
+		if user_id == "" || loggedInUserId != user_id {
+				c.Header("Content-Type", "application/json")
+				c.JSON(http.StatusForbidden, gin.H{"error": "You are not allowed to view this user"})
+				c.Abort()
+				return
 		}
 		usert_id, _ := primitive.ObjectIDFromHex(user_id)
 		err := UserCollection.FindOne(ctx, bson.M{"_id": usert_id}).Decode(&user)
@@ -139,6 +153,16 @@ func DeleteUser() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		loggedInUserId := c.MustGet("userId").(string)
+
+		if user_id == "" || loggedInUserId != user_id {
+				c.Header("Content-Type", "application/json")
+				c.JSON(http.StatusForbidden, gin.H{"error": "You are not allowed to update this user"})
+				c.Abort()
+				return
+		}
+
 		err := UserCollection.FindOneAndDelete(ctx, bson.M{"_id": user_id}).Decode(&models.User{})
 		if err != nil {
 			log.Println(err)
@@ -149,6 +173,54 @@ func DeleteUser() gin.HandlerFunc {
 }
 
 func UpdateUser() gin.HandlerFunc {
+	return func (c *gin.Context){
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		var user models.User
+		user_id := c.Query("id")
+		if user_id == "" {
+			c.Header("Content-Type", "application/json")
+			c.JSON(http.StatusNotFound, gin.H{"error": "invalid id"})
+			c.Abort()
+			return
+		}
+
+		loggedInUserId := c.MustGet("userId").(string)
+
+		if user_id == "" || loggedInUserId != user_id {
+				c.Header("Content-Type", "application/json")
+				c.JSON(http.StatusForbidden, gin.H{"error": "You are not allowed to update this user"})
+				c.Abort()
+				return
+		}
+
+		usert_id, _ := primitive.ObjectIDFromHex(user_id)
+		err := UserCollection.FindOne(ctx, bson.M{"_id": usert_id}).Decode(&user)
+		if err != nil {
+			log.Println(err)
+			c.IndentedJSON(500, "not id found")
+			return
+		}
+		if err := c.BindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		validationErr := Validate.Struct(user)
+		if validationErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr})
+			return
+		}
+		user.Updated_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		_, err = UserCollection.UpdateOne(ctx, bson.M{"_id": usert_id}, bson.M{"$set": user})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "not updated"})
+			return
+		}
+		c.JSON(http.StatusOK, "Successfully updated the user")
+	}
+}
+
+func AdminUpdateUser() gin.HandlerFunc {
 	return func (c *gin.Context){
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
@@ -183,5 +255,49 @@ func UpdateUser() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, "Successfully updated the user")
+	}
+}
+
+func AdminDeleteUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		user_id := c.Query("id")
+		if user_id == "" {
+			c.Header("Content-Type", "application/json")
+			c.JSON(http.StatusNotFound, gin.H{"error": "invalid id"})
+			c.Abort()
+			return
+		}
+		
+		err := UserCollection.FindOneAndDelete(ctx, bson.M{"_id": user_id}).Decode(&models.User{})
+		if err != nil {
+			log.Println(err)
+			c.IndentedJSON(500, "not id found")
+			return
+		}		
+	}
+}
+
+func AdminGetUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		var user models.User
+		user_id := c.Query("id")
+		if user_id == "" {
+			c.Header("Content-Type", "application/json")
+			c.JSON(http.StatusNotFound, gin.H{"error": "invalid id"})
+			c.Abort()
+			return
+		}
+		
+		usert_id, _ := primitive.ObjectIDFromHex(user_id)
+		err := UserCollection.FindOne(ctx, bson.M{"_id": usert_id}).Decode(&user)
+		if err != nil {
+			log.Println(err)
+			c.IndentedJSON(500, "not id found")
+			return
+		}
 	}
 }

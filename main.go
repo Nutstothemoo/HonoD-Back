@@ -12,6 +12,7 @@ import (
 	"google.golang.org/api/option"	
 	"ginapp/auth" 
 	"log"
+	controllers "ginapp/api/controllers"
 	"os"
 	"github.com/fatih/color"
 )
@@ -57,6 +58,17 @@ func setupRouter(app *controllers.Application) *gin.Engine {
 	r.POST("/googleAuth", gin.WrapF(auth.GoogleAuthHandler))
   r.POST("/facebookAuth", gin.WrapF(auth.FacebookAuthHandler))
 	r.Use(middleware.Authentification())
+
+	// ADMIN ROUTE
+
+	adminRoutes := r.Group("/admin")
+	adminRoutes.Use(middleware.AdminAuthentication())
+	adminRoutes.PUT("/users/:id", controllers.AdminUpdateUser())
+	adminRoutes.DELETE("/users/:id", controllers.AdminDeleteUser())
+	adminRoutes.GET("/users/:id", controllers.AdminGetUser())
+
+	dealerRoutes := r.Group("/dealer")
+	dealerRoutes.Use(middleware.DealerAuthentication())
 
 	routes.UserRoutes(r)
 	routes.EventRoutes(r)
