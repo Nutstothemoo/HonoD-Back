@@ -31,68 +31,65 @@ func NewApplication(ticketCollection, userCollection, eventCollection *mongo.Col
 	}
 }
 
+
 func (app *Application) AddToCart() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		productQueryID := c.Query("id")
-		if productQueryID == "" {
-			log.Println("product id is empty")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("product id is empty"))
-			return
-		}
-		userQueryID := c.Query("userID")
-		if userQueryID == "" {
-			log.Println("user id is empty")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("user id is empty"))
-			return
-		}
-		productID, err := primitive.ObjectIDFromHex(productQueryID)
-		if err != nil {
-			log.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
+			ticketQueryID := c.Query("id")
+			if ticketQueryID == "" {
+					log.Println("ticket id is empty")
+					_ = c.AbortWithError(http.StatusBadRequest, errors.New("ticket id is empty"))
+					return
+			}
+			userQueryID := c.MustGet("userId").(string)
 
-		err = AddProductofCart(ctx, app.TicketCollection, app.UserCollection, productID, userQueryID)
-		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
-		}
-		c.IndentedJSON(201, "Successfully Added to the cart")
+			ticketID, err := primitive.ObjectIDFromHex(ticketQueryID)
+			if err != nil {
+					log.Println(err)
+					c.AbortWithStatus(http.StatusInternalServerError)
+					return
+			}
+			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
+			err = AddTicketToCart(ctx, app.TicketCollection, app.UserCollection, ticketID, userQueryID)
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, err)
+			}
+			c.IndentedJSON(201, "Successfully Added to the cart")
 	}
 }
 
 func (app *Application) RemoveItem() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		productQueryID := c.Query("id")
-		
-		if productQueryID == "" {
-			log.Println("product id is invalid")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("product id is empty"))
-			return
-		}
+			ticketQueryID := c.Query("id")
+			
+			if ticketQueryID == "" {
+					log.Println("ticket id is invalid")
+					_ = c.AbortWithError(http.StatusBadRequest, errors.New("ticket id is empty"))
+					return
+			}
 
-		userQueryID := c.Query("userID")
-		if userQueryID == "" {
-			log.Println("user id is empty")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("UserID is empty"))
-		}
+			userQueryID := c.MustGet("userId").(string)
+			if userQueryID == "" {
+					log.Println("user id is empty")
+					_ = c.AbortWithError(http.StatusBadRequest, errors.New("UserID is empty"))
+			}
 
-		ProductID, err := primitive.ObjectIDFromHex(productQueryID)
-		if err != nil {
-			log.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
+			ticketID, err := primitive.ObjectIDFromHex(ticketQueryID)
+			if err != nil {
+					log.Println(err)
+					c.AbortWithStatus(http.StatusInternalServerError)
+					return
+			}
 
-		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		err = RemoveProductofCart(ctx, app.UserCollection, ProductID, userQueryID)
-		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
-			return
-		}
-		c.IndentedJSON(200, "Successfully removed from cart")
+			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			err = RemoveTicketFromCart(ctx, app.UserCollection, ticketID, userQueryID)
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, err)
+					return
+			}
+			c.IndentedJSON(200, "Successfully removed from cart")
 	}
 }
 
@@ -231,16 +228,21 @@ func BuyProductFromCart(ctx context.Context,  userCollection *mongo.Collection, 
 func InstantBuyer(ctx context.Context, ticketCollection *mongo.Collection, userCollection *mongo.Collection, productID primitive.ObjectID , userID string) error {
 	// This function depends on your application logic.
 	// You might need to decrease the product's stock.
-	// Here is a simple example:
 	// You might need to update the product's stock in another collection.
 	// You would need to write that code here.
 	return nil
 }
 
-func AddProductofCart(ctx context.Context,  ticketCollection *mongo.Collection, userCollection *mongo.Collection, productID primitive.ObjectID, userID string) error {
-	filter := bson.D{{"email", userID}}
-	update := bson.D{{"$push", bson.D{{"usercart", bson.D{{"_id", productID}}}}}}
+func RemoveTicketFromCart(ctx context.Context, userCollection *mongo.Collection, ticketID  primitive.ObjectID, userID string) error {
+	filter := bson.D{{"_id", userID}}
+	update := bson.D{{"$pull", bson.D{{"usercart", bson.D{{"_id", ticketID}}}}}}
 	_, err := userCollection.UpdateOne(ctx, filter, update)
 	return err
 }
 
+func AddTicketToCart(ctx context.Context, ticketCollection *mongo.Collection, userCollection *mongo.Collection, ticketID primitive.ObjectID, userID string) error {
+	filter := bson.D{{Key: "email", Value: userID}}
+	update := bson.D{{Key: "$push", Value: bson.D{{"usercart", bson.D{{"_id", ticketID}}}}}}
+	_, err := userCollection.UpdateOne(ctx, filter, update)
+	return err
+}

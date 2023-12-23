@@ -29,14 +29,17 @@ type User struct {
 	Order_Refunded []Order                     `json:"order_refunded" bson:"order_refunded"`
 	}
 
-type Ticket struct {
-	ID primitive.ObjectID                      `bson:"_id" json:"_id"`
-	Ticket_name *string                       `json:"ticket_name" bson:"ticket_name"`
-  Price *uint64                              `json:"price" bson:"price"`
-	Rating *uint8                              `json:"rating" bson:"rating"`
-	Image *string                              `json:"image" bson:"image"`
-	EventID    primitive.ObjectID 							`bson:"event_id" json:"event_id"`
-}	
+	type Ticket struct {
+    ID        primitive.ObjectID `bson:"_id" json:"_id"`
+    TicketName *string           `json:"ticket_name" bson:"ticket_name"`
+    Price      *uint64           `json:"price" bson:"price"`
+    Rating     *uint8            `json:"rating" bson:"rating"`
+    Image      *string           `json:"image" bson:"image"`
+    EventID    primitive.ObjectID `bson:"event_id" json:"event_id"`
+    DealerID   primitive.ObjectID `bson:"dealer_id" json:"dealer_id"`
+    CreatedAt  time.Time          `bson:"created_at" json:"created_at"`
+    UpdatedAt  time.Time          `bson:"updated_at" json:"updated_at"`
+}
 
 type TicketUser struct {
 	ID primitive.ObjectID                    `json:"_id" bson:"_id"`
@@ -60,6 +63,7 @@ type Order struct {
 	Order_ID primitive.ObjectID                  `json:"_id" bson:"_id"`
 	Order_Cart []TicketUser                      `bson:"order_cart" json:"order_cart" `
 	Orderered_At time.Time                       `bson:"ordered_at" json:"ordered_at"`
+	Ticket_Count int                             `bson:"ticket_count" json:"ticket_count"`
 	Price int                                    `bson:"price" json:"price"`
 	Discount	float64                            `bson:"discount" json:"discount"`
 	Payment_Method Payement                      `bson:"payment_method" json:"payment_method"`

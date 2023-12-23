@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
-
+	"ginapp/api/models"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -52,7 +52,7 @@ func GenerateAndSaveQRCodeOnDisk( data string) error {
 	return nil
 }
 
-func GenerateAndUploadQRCode(data, s3BucketName, s3ObjectKeyPrefix string) error {
+func GenerateAndUploadQRCode( event models.Event, data, s3BucketName, s3ObjectKeyPrefix string) error {
 	code, err := qrcode.New(data, qrcode.Medium)
 	if err != nil {
 		fmt.Println("Erreur lors de la création du QR code:", err)
@@ -96,7 +96,7 @@ func GenerateAndUploadQRCode(data, s3BucketName, s3ObjectKeyPrefix string) error
 	return nil
 }
 
-func GenerateAndUploadMultipleQRCodes(n int, s3BucketName, s3ObjectKeyPrefix string) error {
+func GenerateAndUploadMultipleQRCodes( event models.Event, data, n int, s3BucketName, s3ObjectKeyPrefix string) error {
 	// Créez une "wait group" pour attendre la fin de toutes les goroutines
 	var wg sync.WaitGroup
 
@@ -108,7 +108,11 @@ func GenerateAndUploadMultipleQRCodes(n int, s3BucketName, s3ObjectKeyPrefix str
 
 					// Générez le contenu du QR code (utilisez un contenu unique pour chaque QR code)
 					data := fmt.Sprintf("QR Code %d", index)
+			// 				// Générez le contenu du QR code (incluez le nom de l'événement et le numéro de la place)
+					// data := fmt.Sprintf("Event: %s\nDate: %s\nPlace: %d", event.Name, event.Date.Format("2006-01-02"), index+1)
 
+			// // Signez numériquement le contenu avec la clé privée
+			// signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, []byte(data))
 					code, err := qrcode.New(data, qrcode.Medium)
 					if err != nil {
 							fmt.Printf("Erreur lors de la création du QR code %d: %v\n", index, err)

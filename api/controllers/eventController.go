@@ -128,6 +128,8 @@ func UpdateEvent() gin.HandlerFunc {
 				return
 		}
 
+		event.UpdatedAt = time.Now()
+
 		_, err = EventCollection.UpdateOne(ctx, bson.M{"_id": event.ID}, bson.M{"$set": event})
 		if err != nil {
 				c.IndentedJSON(http.StatusInternalServerError, err)
@@ -176,7 +178,7 @@ func DeleteEvent() gin.HandlerFunc {
 		}
 
 		c.IndentedJSON(201, "Successfully deleted the event")
-}
+	}
 }
 
 func MainGetEvents() gin.HandlerFunc {
@@ -218,6 +220,8 @@ func AdminAddEvent() gin.HandlerFunc {
 		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
+		event.CreatedAt = time.Now()           // Set CreatedAt to the current time
+		event.UpdatedAt = time.Now() 
 		_, err := EventCollection.InsertOne(ctx, event)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
@@ -243,7 +247,7 @@ func AdminUpdateEvent() gin.HandlerFunc {
 
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-
+		event.UpdatedAt = time.Now()
 		_, err = EventCollection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"$set": event})
 		if err != nil {
 				c.IndentedJSON(http.StatusInternalServerError, err)

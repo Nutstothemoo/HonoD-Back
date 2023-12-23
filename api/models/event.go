@@ -14,7 +14,7 @@ type Event struct {
 	Timezone          string             `json:"timezone"`
 	Description       string             `json:"description"`
 	AddressVisibility string             `json:"addressVisibility"`
-	Geolocation       Geolocation        `json:"geolocation"`
+	GeolocationID     primitive.ObjectID `bson:"geolocation_id" json:"geolocation_id"`
 	IsFestival        bool               `json:"isFestival"`
 	Name              string             `json:"name"`
 	FeaturedText      string             `json:"featuredText"`
@@ -22,46 +22,12 @@ type Event struct {
 	CancelledAt       *int64             `json:"cancelledAt"`
 	Currency          string             `json:"currency"`
 	Tags              []Tag              `json:"tags"`
-	DealerID          primitive.ObjectID `bson:"dealer_id" json:"dealer_id"` // Changed from Dealer to DealerID
+	DealerID          primitive.ObjectID `bson:"dealer_id" json:"dealer_id"`
 	LaunchedAt        int64              `json:"launchedAt"`
 	IsSoldOut         bool               `json:"isSoldOut"`
 	MinTicketPrice    float64            `json:"minTicketPrice"`
-	CreatedAt         time.Time          `bson:"created_at" json:"created_at"` // Added
-	UpdatedAt         time.Time          `bson:"updated_at" json:"updated_at"` // Added
-}
-
-type Geolocation struct {
-	Street string `json:"street"`
-	Venue  string `json:"venue"`
-	Lat    float64 `json:"lat"`
-	Lng    float64 `json:"lng"`
-	City   City   `json:"city"`
-}
-
-type City struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Location GPSPoint `json:"location"`
-	Area     Area   `json:"area"`
-	Country  Country `json:"country"`
-	ZipCode  string `json:"zipCode"`
-}
-
-type GPSPoint struct {
-	Lat float64 `json:"lat"`
-	Lng float64 `json:"lng"`
-}
-
-type Area struct {
-	ID   string `json:"id"`
-	Slug string `json:"slug"`
-	Name string `json:"name"`
-}
-
-type Country struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	IsoCode string `json:"isoCode"`
+	CreatedAt         time.Time          `bson:"created_at" json:"created_at"`
+	UpdatedAt         time.Time          `bson:"updated_at" json:"updated_at"`
 }
 
 type Artwork struct {

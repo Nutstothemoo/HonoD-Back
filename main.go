@@ -54,8 +54,6 @@ func main() {
 	r.Run("localhost:"+ port ) 
 }
 
-import "ginapp/api/routes"
-
 func setupRouter(app *controllers.Application) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
@@ -64,19 +62,25 @@ func setupRouter(app *controllers.Application) *gin.Engine {
 	routes.UserRoutes(r)
 	routes.EventRoutes(r)
 	routes.TicketRoutes(r)
-	routes.AddressRoutes(r)
+	// routes.AddressRoutes(r)
 	routes.ArtistRoutes(r)
-	routes.AdminRoutes(r) // Add this line
+	// routes.AdminRoutes(r) 
 
 	adminRoutes := r.Group("/admin")
 	adminRoutes.Use(middleware.AdminAuthentication())
 	routes.AdminEventRoutes(adminRoutes)
 	adminRoutes.POST("/event", controllers.AdminAddEvent())
-	adminRoutes.PUT("/event/", controllers.AdminUpdateEvent() )
-	adminRoutes.DELETE("/event", controllers.AdminDeleteEvent())// Fixed the function call
+	adminRoutes.PUT("/event/:id", controllers.AdminUpdateEvent() )
+	adminRoutes.DELETE("/event/:id", controllers.AdminDeleteEvent())
+
 	adminRoutes.PUT("/users/:id", controllers.AdminUpdateUser())
 	adminRoutes.DELETE("/users/:id", controllers.AdminDeleteUser())
 	adminRoutes.GET("/users/:id", controllers.AdminGetUser())
+
+	adminRoutes.POST("/ticket", controllers.AdminAddTicket())
+	adminRoutes.PUT("/ticket/:id", controllers.AdminUpdateTicket())
+	adminRoutes.DELETE("/ticket/:id", controllers.AdminDeleteTicket())
+	// adminRoutes.GET("/ticket/:id", controllers.AdminGetTicket())
 
 	// USER ROUTE
 

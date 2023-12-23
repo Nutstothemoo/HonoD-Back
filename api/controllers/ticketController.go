@@ -19,25 +19,7 @@ var TicketCollection *mongo.Collection = database.ProductData(database.Client, "
 var Validate = validator.New()
 
 
-func AddTicketViewerAdmin() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-		var products models.Ticket
-		defer cancel()
-		if err := c.BindJSON(&products); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		products.ID = primitive.NewObjectID()
-		_, anyerr := TicketCollection.InsertOne(ctx, products)
-		if anyerr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Not Created"})
-			return
-		}
-		defer cancel()
-		c.JSON(http.StatusOK, "Successfully added our Product !!")
-	}
-}
+// USER
 
 func SearchTicket() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -98,5 +80,191 @@ func SearchTicketByQuery() gin.HandlerFunc {
 		}
 		defer cancel()
 		c.IndentedJSON(200, searchproducts)
+	}
+}
+
+// DEALER
+
+
+func AddTicket() gin.HandlerFunc {
+	return func(c *gin.Context) {
+			var ticket models.Ticket
+			if err := c.BindJSON(&ticket); err != nil {
+					c.IndentedJSON(http.StatusBadRequest, err)
+					return
+			}
+
+
+			userID := c.MustGet("userId").(primitive.ObjectID)
+			if ticket.DealerID != userID {
+					c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to create this ticket")
+					return
+			}
+
+			var event models.Event
+			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			err := EventCollection.FindOne(ctx, bson.M{"_id": ticket.EventID}).Decode(&event)
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, err)
+					return
+			}
+			if event.DealerID != userID {
+					c.IndentedJSON(http.StatusUnauthorized, "The event does not belong to you")
+					return
+			}
+
+			ticket.CreatedAt = time.Now()           // Set CreatedAt to the current time
+			ticket.UpdatedAt = time.Now() 
+			_, err = TicketCollection.InsertOne(ctx, ticket)
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, err)
+					return
+			}
+			c.IndentedJSON(201, "Successfully added the ticket")
+	}
+}
+
+func UpdateTicket() gin.HandlerFunc {
+	return func(c *gin.Context) {
+			var ticket models.Ticket
+			if err := c.BindJSON(&ticket); err != nil {
+					c.IndentedJSON(http.StatusBadRequest, err)
+					return
+			}
+
+			ticketID, err := primitive.ObjectIDFromHex(c.Param("id"))
+			if err != nil {
+					c.IndentedJSON(http.StatusBadRequest, "Invalid ticket ID")
+					return
+			}
+
+			userID := c.MustGet("userId").(primitive.ObjectID)
+			if ticket.DealerID != userID {
+					c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to update this ticket")
+					return
+			}
+
+			var event models.Event
+			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			err = EventCollection.FindOne(ctx, bson.M{"_id": ticket.EventID}).Decode(&event)
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, err)
+					return
+			}
+			if event.DealerID != userID {
+					c.IndentedJSON(http.StatusUnauthorized, "The event does not belong to you")
+					return
+			}
+
+			ticket.UpdatedAt = time.Now()
+			_, err = TicketCollection.UpdateOne(ctx, bson.M{"_id": ticketID}, bson.M{"$set": ticket})
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, err)
+					return
+			}
+
+			c.IndentedJSON(201, "Successfully updated the ticket")
+	}
+}
+
+func DeleteTicket() gin.HandlerFunc {
+	return func(c *gin.Context) {
+			ticketID, err := primitive.ObjectIDFromHex(c.Param("id"))
+			if err != nil {
+					c.IndentedJSON(http.StatusBadRequest, "Invalid ticket ID")
+					return
+			}
+
+			var ticket models.Ticket
+			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			err = TicketCollection.FindOne(ctx, bson.M{"_id": ticketID}).Decode(&ticket)
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, err)
+					return
+			}
+
+			userID := c.MustGet("userId").(primitive.ObjectID)
+			if ticket.DealerID != userID {
+					c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to delete this ticket")
+					return
+			}
+
+			_, err = TicketCollection.DeleteOne(ctx, bson.M{"_id": ticketID})
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, err)
+					return
+			}
+
+			c.IndentedJSON(201, "Successfully deleted the ticket")
+		}
+}
+
+// ADMIN 
+
+func AdminAddTicket() gin.HandlerFunc {
+	return func(c *gin.Context) {
+			var ticket models.Ticket
+			if err := c.BindJSON(&ticket); err != nil {
+					c.IndentedJSON(http.StatusBadRequest, err)
+					return
+			}
+			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			ticket.CreatedAt = time.Now()           // Set CreatedAt to the current time
+			ticket.UpdatedAt = time.Now() 
+			_, err := TicketCollection.InsertOne(ctx, ticket)
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, err)
+					return
+			}
+			c.IndentedJSON(201, "Successfully added the ticket")
+	}
+}
+
+func AdminUpdateTicket() gin.HandlerFunc {
+	return func(c *gin.Context) {
+			var ticket models.Ticket
+			if err := c.BindJSON(&ticket); err != nil {
+							c.IndentedJSON(http.StatusBadRequest, err)
+							return
+			}
+
+			ticketID, err := primitive.ObjectIDFromHex(c.Param("id"))
+			if err != nil {
+							c.IndentedJSON(http.StatusBadRequest, "Invalid ticket ID")
+							return
+			}
+
+			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			ticket.UpdatedAt = time.Now()
+			_, err = TicketCollection.UpdateOne(ctx, bson.M{"_id": ticketID}, bson.M{"$set": ticket})
+			if err != nil {
+							c.IndentedJSON(http.StatusInternalServerError, err)
+							return
+			}
+
+			c.IndentedJSON(201, "Successfully updated the ticket")
+	}
+}
+
+func AdminDeleteTicket() gin.HandlerFunc {
+	return func(c *gin.Context) {
+			ticketID, err := primitive.ObjectIDFromHex(c.Param("id"))
+			if err != nil {
+					c.IndentedJSON(http.StatusBadRequest, "Invalid ticket ID")
+					return
+			}
+			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			_, err = TicketCollection.DeleteOne(ctx, bson.M{"_id": ticketID})
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, err)
+					return
+			}
+			c.IndentedJSON(201, "Successfully deleted the ticket")
 	}
 }

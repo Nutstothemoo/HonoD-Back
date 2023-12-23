@@ -7,10 +7,16 @@ import (
 )
 
 func TicketRoutes (incomingRoutes * gin.Engine){
-	dealerRoutes := incomingRoutes.Group("/dealer")
-	dealerRoutes.Use(middleware.DealerAuthentication())
-	dealerRoutes.POST("/addproduct", controllers.AddTicketViewerAdmin())
 
 	incomingRoutes.GET("/users/productview", controllers.SearchTicket())
 	incomingRoutes.GET("/users/search", controllers.SearchTicketByQuery())
+
+	dealerRoutes := incomingRoutes.Group("/dealer")
+
+	dealerRoutes.Use(middleware.DealerAuthentication())
+	dealerRoutes.POST("/tickets", controllers.AddTicket())
+	dealerRoutes.PUT("/tickets/:id", controllers.UpdateTicket())
+	dealerRoutes.DELETE("/tickets/:id", controllers.DeleteTicket())
+
 }
+
