@@ -2,19 +2,22 @@ package main
 
 import (
 	"context"
-	"firebase.google.com/go"
+	"fmt"
+	"ginapp/api/auth"
 	"ginapp/api/controllers"
 	"ginapp/api/middleware"
 	"ginapp/api/routeur"
 	"ginapp/database"
+	"log"
+	"net/http"
+	"os"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"firebase.google.com/go"
+	"github.com/fatih/color"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"google.golang.org/api/option"	
-	"ginapp/api/auth" 
-	"log"
-	"fmt"
-	"os"
-	"github.com/fatih/color"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -57,14 +60,27 @@ func main() {
 func setupRouter(app *controllers.Application) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
-	r.POST("/googleAuth", gin.WrapF(auth.GoogleAuthHandler))
-	r.POST("/facebookAuth", gin.WrapF(auth.FacebookAuthHandler))
+
+		// Add CORS middleware
+
+		config := cors.DefaultConfig()
+		config.AllowAllOrigins = true // Allow all origins
+		config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"} // Allow all methods
+		config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"} // Allow all headers
+		r.Use(cors.New(config))
+
+	r.GET("/ping", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong")
+	})
+	
 	routes.UserRoutes(r)
 	routes.EventRoutes(r)
 	routes.TicketRoutes(r)
-	// routes.AddressRoutes(r)
+	routes.AdressRoutes(r)
 	routes.ArtistRoutes(r)
-	// routes.AdminRoutes(r) 
+
+	r.POST("/googleAuth", gin.WrapF(auth.GoogleAuthHandler))
+	r.POST("/facebookAuth", gin.WrapF(auth.FacebookAuthHandler))
 
 	adminRoutes := r.Group("/admin")
 	adminRoutes.Use(middleware.AdminAuthentication())
@@ -84,11 +100,6 @@ func setupRouter(app *controllers.Application) *gin.Engine {
 
 	// USER ROUTE
 
-	routes.UserRoutes(r)
-	routes.EventRoutes(r)
-	routes.TicketRoutes(r)
-	routes.AdressRoutes(r)
-	routes.ArtistRoutes(r)
 
 	r.Use(gin.Recovery())
 

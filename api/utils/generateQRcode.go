@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"sync"
-	"ginapp/api/models"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -52,7 +51,7 @@ func GenerateAndSaveQRCodeOnDisk( data string) error {
 	return nil
 }
 
-func GenerateAndUploadQRCode( event models.Event, data, s3BucketName, s3ObjectKeyPrefix string) error {
+func GenerateAndUploadQRCode( data, s3BucketName, s3ObjectKeyPrefix string) error {
 	code, err := qrcode.New(data, qrcode.Medium)
 	if err != nil {
 		fmt.Println("Erreur lors de la création du QR code:", err)
@@ -96,7 +95,7 @@ func GenerateAndUploadQRCode( event models.Event, data, s3BucketName, s3ObjectKe
 	return nil
 }
 
-func GenerateAndUploadMultipleQRCodes( event models.Event, data, n int, s3BucketName, s3ObjectKeyPrefix string) error {
+func GenerateAndUploadMultipleQRCodes( data, n int, s3BucketName, s3ObjectKeyPrefix string) error {
 	// Créez une "wait group" pour attendre la fin de toutes les goroutines
 	var wg sync.WaitGroup
 
