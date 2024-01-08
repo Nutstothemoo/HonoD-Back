@@ -2,14 +2,22 @@ package routes
 
 import (
 	controllers "ginapp/api/controllers"
+	middleware "ginapp/api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func UserRoutes (incomingRoutes * gin.Engine){
+func UserRoutes(incomingRoutes *gin.Engine) {
+
+	// Public routes
 
 	incomingRoutes.POST("/users/signup", controllers.SignUp())
 	incomingRoutes.POST("/users/login", controllers.Login())
-	incomingRoutes.PUT("/users/:id", controllers.UpdateUser())
-	incomingRoutes.DELETE("/users/:id", controllers.DeleteUser())	
+
+	// Authenticated routes
+
+	authGroup := incomingRoutes.Group("/users")
+	authGroup.Use(middleware.Authentification())
+	authGroup.PUT("/:id", controllers.UpdateUser())
+	authGroup.DELETE("/:id", controllers.DeleteUser())
 }

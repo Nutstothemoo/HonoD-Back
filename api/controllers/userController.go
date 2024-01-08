@@ -14,6 +14,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+type SafeUser struct {
+	Email       string `json:"email"`
+	FirstName   string `json:"firstName"`
+	LastName    string `json:"lastName"`
+	Phone       string `json:"phone"`
+	Username    string `json:"username"`
+}
 
 func SignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -67,7 +74,7 @@ func SignUp() gin.HandlerFunc {
 		user.Updated_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.ID = primitive.NewObjectID()
 		user.User_ID = user.ID.Hex()
-		token, refreshtoken, _ := generate.TokenGenerator(*user.Email, *user.First_Name, *user.Last_Name, user.User_ID, *user.Role)
+		token, refreshtoken, _ := generate.TokenGenerator(*user.Email, *user.FirstName, *user.LastName, user.User_ID, *user.Role)
 		user.Token = &token
 		user.Refresh_Token = &refreshtoken
 		user.UserCart = make([]models.TicketUser, 0)
@@ -76,14 +83,14 @@ func SignUp() gin.HandlerFunc {
 		user.Order_Refunded = make([]models.Order, 0)
 		user.Order_Canceled = make([]models.Order, 0)		
 		user.Order_History = make([]models.Order,0)
-		
+
 		_, inserterr := UserCollection.InsertOne(ctx, user)
 		if inserterr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "not created"})
 			return
 		}
 		defer cancel()
-		c.JSON(http.StatusCreated, "Successfully Signed Up!!")
+		c.JSON(201, "Successfully Signed Up!!")
 	}
 }
 
@@ -115,10 +122,27 @@ func Login() gin.HandlerFunc {
 			fmt.Println(msg)
 			return
 		}
-		token, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.First_Name, *founduser.Last_Name, founduser.User_ID, *founduser.Role)		
+		token, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.FirstName, *founduser.LastName, founduser.User_ID, *founduser.Role)		
 		defer cancel()
 		generate.UpdateAllTokens(token, refreshToken, founduser.User_ID)
-		c.JSON(http.StatusFound, founduser)
+		http.SetCookie(c.Writer, &http.Cookie{
+			Name:     "auth_token",
+			Value:    token,
+			MaxAge:   60 * 60 * 240,    // 10 day
+			HttpOnly: false,            // The cookie is not accessible via JavaScript
+			Secure:   false,            // The cookie is not sent only over HTTPS
+			SameSite: http.SameSiteStrictMode, // The cookie is sent only to the same site as the one that originated it
+		})
+
+		safeUser := SafeUser{
+			Email:     *founduser.Email,
+			FirstName: *founduser.FirstName,
+			LastName:  *founduser.LastName,
+			Phone:     *founduser.Phone,
+			Username:  *founduser.Username,
+		}
+
+		c.JSON(200, safeUser)
 	}
 }
 

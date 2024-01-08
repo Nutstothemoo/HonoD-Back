@@ -14,7 +14,7 @@ type Event struct {
 	Timezone          string             `json:"timezone"`
 	Description       string             `json:"description"`
 	AddressVisibility string             `json:"addressVisibility"`
-	GeolocationID     primitive.ObjectID `bson:"geolocation_id" json:"geolocation_id"`
+	Geolocation       Geolocation        `json:"geolocation"`
 	IsFestival        bool               `json:"isFestival"`
 	Name              string             `json:"name"`
 	FeaturedText      string             `json:"featuredText"`
@@ -28,6 +28,14 @@ type Event struct {
 	MinTicketPrice    float64            `json:"minTicketPrice"`
 	CreatedAt         time.Time          `bson:"created_at" json:"created_at"`
 	UpdatedAt         time.Time          `bson:"updated_at" json:"updated_at"`
+}
+
+type Geolocation struct {
+	Latitude  float64            `json:"latitude"`
+	Longitude float64            `json:"longitude"`
+	Address   string             `json:"address"`
+	City      string             `json:"city"`
+	Country   string             `json:"country"`
 }
 
 type Artwork struct {

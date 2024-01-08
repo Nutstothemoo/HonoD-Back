@@ -3,36 +3,27 @@ package main
 import (
 	"context"
 	"fmt"
-	"ginapp/api/auth"
+
+	// "ginapp/api/auth"
 	"ginapp/api/controllers"
 	"ginapp/api/middleware"
 	"ginapp/api/routeur"
 	"ginapp/database"
+	"ginapp/sdk"
 	"log"
 	"net/http"
+
+	// "golang.org/x/oauth2"
+	// "golang.org/x/oauth2/google"
 	"os"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+
 	"firebase.google.com/go"
 	"github.com/fatih/color"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"google.golang.org/api/option"
 )
-
-var (
-	app *firebase.App
-)
-
-func init() {
-	opt := option.WithCredentialsFile("credential.json")
-	var err error
-	app, err = firebase.NewApp(context.Background(), nil, opt)
-	if err != nil {
-			log.Fatalf("error initializing app: %v\n", err)
-	}
-	log.Println(color.GreenString("Successfully connected to Firebase"))
-}
 
 func main() {
 	err := godotenv.Load(".env")
@@ -69,26 +60,26 @@ func setupRouter(app *controllers.Application) *gin.Engine {
 		config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"} // Allow all headers
 		r.Use(cors.New(config))
 
+
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})
-	
+	r.GET("/login/facebook", sdk.InitFacebookLogin())
+	r.GET("/facebook/callback", sdk.HandleFacebookLogin())
+
+	r.GET("/login/google", sdk.InitGoogleLogin())
+	r.GET("/google/callback", sdk.HandleGoogleLogin())
+
 	routes.UserRoutes(r)
 	routes.EventRoutes(r)
 	routes.TicketRoutes(r)
 	routes.AdressRoutes(r)
 	routes.ArtistRoutes(r)
 
-	r.POST("/googleAuth", gin.WrapF(auth.GoogleAuthHandler))
-	r.POST("/facebookAuth", gin.WrapF(auth.FacebookAuthHandler))
-
 	adminRoutes := r.Group("/admin")
 	adminRoutes.Use(middleware.AdminAuthentication())
 	routes.AdminEventRoutes(adminRoutes)
-	adminRoutes.POST("/event", controllers.AdminAddEvent())
-	adminRoutes.PUT("/event/:id", controllers.AdminUpdateEvent() )
-	adminRoutes.DELETE("/event/:id", controllers.AdminDeleteEvent())
-
 	adminRoutes.PUT("/users/:id", controllers.AdminUpdateUser())
 	adminRoutes.DELETE("/users/:id", controllers.AdminDeleteUser())
 	adminRoutes.GET("/users/:id", controllers.AdminGetUser())
@@ -104,4 +95,18 @@ func setupRouter(app *controllers.Application) *gin.Engine {
 	r.Use(gin.Recovery())
 
 	return r
+}
+
+var (
+	app *firebase.App
+)
+
+func firebaseInit() {
+	opt := option.WithCredentialsFile("credential.json")
+	var err error
+	app, err = firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+			log.Fatalf("error initializing app: %v\n", err)
+	}
+	log.Println(color.GreenString("Successfully connected to Firebase"))
 }
