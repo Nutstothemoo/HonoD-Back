@@ -36,10 +36,8 @@ func HandleFacebookLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 			var state = c.Query("state")
 			var code = c.Query("code")
-			// frontURL := os.Getenv("FRONT_URL")
 			if state != GetRandomOAuthStateString() {
 				c.JSON(500, gin.H{"message": "state is not valid"})
-					// c.Redirect(http.StatusTemporaryRedirect, frontURL + "/")
 					return
 			}
 
@@ -81,9 +79,8 @@ func HandleFacebookLogin() gin.HandlerFunc {
 					Name:     "auth_token",
 					Value:    authtoken,
 					MaxAge:   60 * 60 * 240,    // 10 day
-					HttpOnly: false,            // The cookie is not accessible via JavaScript
-					Secure:   false,            // The cookie is not sent only over HTTPS
-					SameSite: http.SameSiteStrictMode, // The cookie is sent only to the same site as the one that originated it
+					HttpOnly: true,             // The cookie is not accessible via JavaScript
+					Secure:   false,  // he cookie is not sent only over HTTPS
 			})
 			fmt.Println("User_ID:", founduser.User_ID)
 			fmt.Println("SafeUser Email:", founduser.Email)
