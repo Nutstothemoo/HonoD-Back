@@ -7,7 +7,7 @@ import (
 )
 
 func AdressRoutes (incomingRoutes * gin.Engine){
-
+	
 	incomingRoutes.POST("/adress", controllers.AddAddress())
 	incomingRoutes.PUT("/homeAdress/:id", controllers.EditHomeAddress())
 	incomingRoutes.PUT("/workAdress/:id", controllers.EditWorkAddress())

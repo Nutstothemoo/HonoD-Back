@@ -17,7 +17,7 @@ func UserRoutes(incomingRoutes *gin.Engine) {
 	// Authenticated routes
 
 	authGroup := incomingRoutes.Group("/users")
-	authGroup.Use(middleware.Authentification())
+	authGroup.Use(middleware.Authentication())
 	authGroup.PUT("/:id", controllers.UpdateUser())
 	authGroup.DELETE("/:id", controllers.DeleteUser())
 }

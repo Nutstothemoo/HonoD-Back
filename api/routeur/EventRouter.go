@@ -9,7 +9,7 @@
 	func EventRoutes (incomingRoutes * gin.Engine){
 	
 		incomingRoutes.GET("/events", controllers.GetEvents())
-		incomingRoutes.GET("/events/:id", controllers.GetEventByID())
+		incomingRoutes.GET("/event/:id", controllers.GetEventByID())
 		incomingRoutes.GET("/events/date/:fromDate/:toDate", controllers.GetEventFromDateToDate())
 
 

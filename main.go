@@ -70,7 +70,8 @@ func setupRouter(app *controllers.Application) *gin.Engine {
 
 	r.GET("/login/google", sdk.InitGoogleLogin())
 	r.GET("/google/callback", sdk.HandleGoogleLogin())
-
+	// routes.Use(middleware.Authentication())
+	
 	routes.UserRoutes(r)
 	routes.EventRoutes(r)
 	routes.TicketRoutes(r)

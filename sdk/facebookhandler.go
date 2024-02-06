@@ -22,8 +22,6 @@ import (
 
 var UserCollection *mongo.Collection = database.UserData(database.Client, "Users")
 
-
-
 func InitFacebookLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 			var OAuth2Config = GetFacebookOAuthConfig()
@@ -79,15 +77,9 @@ func HandleFacebookLogin() gin.HandlerFunc {
 					Name:     "auth_token",
 					Value:    authtoken,
 					MaxAge:   60 * 60 * 240,    // 10 day
-					HttpOnly: true,             // The cookie is not accessible via JavaScript
-					Secure:   false,  // he cookie is not sent only over HTTPS
+					HttpOnly: false,             // The cookie is not accessible via JavaScript
+					Secure:   false, 
 			})
-			fmt.Println("User_ID:", founduser.User_ID)
-			fmt.Println("SafeUser Email:", founduser.Email)
-			fmt.Println("SafeUser FirstName:", founduser.FirstName)
-			fmt.Println("SafeUser LastName:", founduser.LastName)
-			fmt.Println("SafeUser Phone:", founduser.Phone)
-			fmt.Println("SafeUser Username:", founduser.Username)
 			safeUser := SafeUser{
 					UserID:    founduser.User_ID,
 					Email:     *founduser.Email,
@@ -102,6 +94,7 @@ func HandleFacebookLogin() gin.HandlerFunc {
 			})
 	}
 }
+
 func SignInUser(userDetail UserDetails, UserCollection *mongo.Collection) (*models.User, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()

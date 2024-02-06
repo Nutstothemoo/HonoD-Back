@@ -6,11 +6,11 @@ import (
 	"ginapp/database"
 	"net/http"
 	"time"
-
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var EventCollection *mongo.Collection = database.OpenCollection(database.Client, "Events")
@@ -19,29 +19,43 @@ func GetEvents() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		events, err := EventCollection.Find(ctx, models.Event{})
+		opts := options.Find().SetSort(bson.D{{"startTime", 1}})
+    events, err := EventCollection.Find(ctx, bson.D{}, opts)
+		// filter := bson.M{"startTime": bson.M{"$gte": time.Now().Unix()}}
+		// opts := options.Find().SetSort(bson.D{{"startTime", 1}})
 
+		// events, err := EventCollection.Find(ctx,filter,opts)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
-		c.IndentedJSON(http.StatusOK, events)
-
+		var eventsArray []bson.M
+		if err = events.All(ctx, &eventsArray); err != nil {
+				c.IndentedJSON(http.StatusInternalServerError, err)
+				return
+		}
+		c.IndentedJSON(http.StatusOK, eventsArray)
 	}
 }
 
 func GetEventByID() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		eventID := c.Param("id")
-		
-		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		event, err := EventCollection.Find(ctx, bson.M{"_id": eventID})
-		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
-			return
-		}
-		c.IndentedJSON(http.StatusOK, event)
+			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
+			id, _ := primitive.ObjectIDFromHex(c.Param("id"))
+			event := models.Event{}
+
+			err := EventCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&event)
+			if err != nil {
+					if err == mongo.ErrNoDocuments {
+							c.JSON(http.StatusNotFound, gin.H{"message": "Event not found"})
+							return
+					}
+					c.JSON(http.StatusInternalServerError, gin.H{"message": "Error finding the event"})
+					return
+			}
+			c.JSON(http.StatusOK, event)
 	}
 }
 
@@ -53,14 +67,12 @@ func AddEvent() gin.HandlerFunc {
 				return
 		}
 
-		// Get dealerID from context
 		dealerID, exists := c.MustGet("userId").(primitive.ObjectID)
 		if !exists {
 				c.IndentedJSON(http.StatusBadRequest, "User ID not found")
 				return
 		}
 
-		// Set DealerID, CreatedAt, and UpdatedAt
 		event.DealerID = dealerID              // Set DealerID to the dealerID from context
 		event.CreatedAt = time.Now()           // Set CreatedAt to the current time
 		event.UpdatedAt = time.Now()           // Set UpdatedAt to the current time
