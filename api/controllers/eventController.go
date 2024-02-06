@@ -44,18 +44,63 @@ func GetEventByID() gin.HandlerFunc {
 			defer cancel()
 
 			id, _ := primitive.ObjectIDFromHex(c.Param("id"))
-			event := models.Event{}
 
-			err := EventCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&event)
+			pipeline := mongo.Pipeline{
+					{{"$match", bson.D{{"_id", id}}}},
+					{{"$lookup", bson.D{
+							{"from", "Users"},
+							{"localField", "dealer_id"},
+							{"foreignField", "_id"},
+							{"as", "dealer"},
+					}}},
+					{{"$unwind", "$dealer"}},
+					{{"$addFields", bson.D{
+						{"geolocation", bson.D{{"$cond", bson.A{
+								bson.D{{"$eq", bson.A{"$addressVisibility", "public"}}},
+								"$geolocation",
+								"$$REMOVE",
+						}}}},
+				}}},
+					{{"$project", bson.D{
+						{"_id", 1},
+						{"addressVisibility", 1},
+						{"artworks", 1},
+						{"currency", 1},
+						{"description", 1},
+						{"endTime", 1},
+						{"featuredText", 1},
+						{"isFestival", 1},
+						{"isSoldOut", 1},
+						{"launchedAt", 1},
+						{"minTicketPrice", 1},
+						{"name", 1},
+						{"startTime", 1},
+						{"tags", 1},
+						{"timezone", 1},
+						{"updated_at", 1},
+						{"dealer.dealerName", 1},
+						{"dealer.avatar", 1},
+				}}},
+			}
+
+			cursor, err := EventCollection.Aggregate(ctx, pipeline)
 			if err != nil {
-					if err == mongo.ErrNoDocuments {
-							c.JSON(http.StatusNotFound, gin.H{"message": "Event not found"})
-							return
-					}
 					c.JSON(http.StatusInternalServerError, gin.H{"message": "Error finding the event"})
 					return
 			}
-			c.JSON(http.StatusOK, event)
+
+			var eventWithDealer []bson.M
+			if err = cursor.All(ctx, &eventWithDealer); err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"message": "Error decoding the event"})
+					return
+			}
+
+			if len(eventWithDealer) == 0 {
+					c.JSON(http.StatusNotFound, gin.H{"message": "Event not found"})
+					return
+			}
+
+			c.JSON(http.StatusOK, eventWithDealer[0])
 	}
 }
 
