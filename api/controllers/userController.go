@@ -129,7 +129,7 @@ func Login() gin.HandlerFunc {
 			Name:     "auth_token",
 			Value:    token,
 			MaxAge:   60 * 60 * 240,    // 10 day
-			HttpOnly: false,            // The cookie is not accessible via JavaScript
+			HttpOnly: true,            // The cookie is not accessible via JavaScript
 			Secure:   false,            // The cookie is not sent only over HTTPS
 			SameSite: http.SameSiteStrictMode, // The cookie is sent only to the same site as the one that originated it
 		})

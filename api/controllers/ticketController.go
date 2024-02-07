@@ -85,7 +85,6 @@ func SearchTicketByQuery() gin.HandlerFunc {
 
 // DEALER
 
-
 func AddTicket() gin.HandlerFunc {
 	return func(c *gin.Context) {
 			var ticket models.Ticket

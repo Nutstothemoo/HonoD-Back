@@ -80,6 +80,7 @@ func GetEventByID() gin.HandlerFunc {
 						{"updated_at", 1},
 						{"dealer.dealerName", 1},
 						{"dealer.avatar", 1},
+						{"geolocation", 1},
 				}}},
 			}
 

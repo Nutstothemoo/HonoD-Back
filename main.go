@@ -16,7 +16,6 @@ import (
 	// "golang.org/x/oauth2"
 	// "golang.org/x/oauth2/google"
 	"os"
-
 	"firebase.google.com/go"
 	"github.com/fatih/color"
 	"github.com/gin-contrib/cors"
@@ -34,7 +33,6 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-
 	app:= controllers.NewApplication(
 		database.OpenCollection(database.Client, "Tickets"), 
 		database.OpenCollection(database.Client, "Users"),		
