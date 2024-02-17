@@ -1,9 +1,8 @@
-package actions_test
+package actions
 
 import (
 	"context"
 	"fmt"
-	"ginapp/s3/actions"
 	"os"
 	"testing"
 
@@ -43,7 +42,7 @@ func TestUploadFile(t *testing.T) {
 	s3Client := s3.NewFromConfig(cfg)
 
 	// Initialisez l'objet BucketBasics avec votre client S3
-	bucketBasics := actions.BucketBasics{S3Client: s3Client}
+	bucketBasics := BucketBasics{S3Client: s3Client}
 
 	// Appelez la fonction UploadFile pour téléverser le fichier
 	err = bucketBasics.UploadFile(bucketName, objectKey, fileName)

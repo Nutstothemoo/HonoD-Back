@@ -6,35 +6,37 @@ import (
 )
 
 type User struct {
-	ID primitive.ObjectID                      `json:"_id" bson:"_id"`
+	ID primitive.ObjectID                      	`json:"_id" bson:"_id"`
 	FirstName *string                         	`json:"firstName" validate:"required,min=2,max=100"`
 	LastName *string                          	`json:"lastName" validate:"required,min=2,max=100"`
-	Avatar    string                           `json:"avatar"`
-	FacebookID *string                         `json:"facebookId"`
-	GoogleID *string													 `json:"googleId"`
-	User_ID string                             `json:"user_id"`
-	Username *string                           `json:"username" validate:"required,min=2,max=100"`
-	Password *string                           `json:"password"`
-	Email *string                              `json:"email" validate:"required"`
-	Phone *string                              `json:"phone" validate:"required"`
-	Role *string                               `json:"role"`
-	Token *string                              `json:"token"`
-	Refresh_Token *string                      `json:"refresh_token"`
-	Created_At time.Time                       `json:"created_at"`
-	Updated_At time.Time                       `json:"updated_at"`
-	UserCart []TicketUser                     `json:"usercart" bson:"usercart"`
-	Address_Details []Address                  `json:"adress" bson:"adress"`
-	Order_History []Order                      `json:"order_history" bson:"order_history"`
-	Order_Canceled []Order                     `json:"order_canceled" bson:"order_canceled"`
-	Order_Refunded []Order                     `json:"order_refunded" bson:"order_refunded"`
-	}
+	Avatar    string                           	`json:"avatar"`
+	FacebookID *string                         	`json:"facebookId"`
+	GoogleID *string													 	`json:"googleId"`
+	User_ID string                             	`json:"user_id"`
+	Username *string                           	`json:"username" validate:"required,min=2,max=100"`
+	Password *string                           	`json:"password"`
+	Email *string                              	`json:"email" validate:"required"`
+	Phone *string                              	`json:"phone" validate:"required"`
+	Role *string                               	`json:"role"`
+	Token *string                              	`json:"token"`
+	Refresh_Token *string                      	`json:"refresh_token"`
+	Created_At time.Time                       	`json:"created_at"`
+	Updated_At time.Time                       	`json:"updated_at"`
+	UserCart []TicketUser                     	`json:"usercart" bson:"usercart"`
+	Address_Details []Address                  	`json:"adress" bson:"adress"`
+	Order_History []Order                      	`json:"order_history" bson:"order_history"`
+	Order_Canceled []Order                     	`json:"order_canceled" bson:"order_canceled"`
+	Order_Refunded []Order      	              `json:"order_refunded" bson:"order_refunded"`
+	Purchases []string 													`json:"purchases" bson:"purchases"` // Nouveau champ	
+}
 
 	type Ticket struct {
-    ID        primitive.ObjectID `bson:"_id" json:"_id"`
-    TicketName *string           `json:"ticket_name" bson:"ticket_name"`
-    Price      *uint64           `json:"price" bson:"price"`
-    Rating     *uint8            `json:"rating" bson:"rating"`
-    Image      *string           `json:"image" bson:"image"`
+		ID        primitive.ObjectID `bson:"_id" json:"_id"`
+		TicketName *string           `json:"ticket_name" bson:"ticket_name"`
+		Price      *uint64           `json:"price" bson:"price"`
+		Rating     *uint8           `json:"rating" bson:"rating"`
+		Image      *string           	`json:"image" bson:"image"`
+		Stock  			*uint64           `json:"stock" bson:"stock"`
     EventID    primitive.ObjectID `bson:"event_id" json:"event_id"`
     DealerID   primitive.ObjectID `bson:"dealer_id" json:"dealer_id"`
     CreatedAt  time.Time          `bson:"created_at" json:"created_at"`

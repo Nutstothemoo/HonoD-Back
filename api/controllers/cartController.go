@@ -3,12 +3,15 @@ package controllers
 import (
 	"context"
 	"errors"
+	"fmt"
+	"ginapp/api/models"
+	"ginapp/api/utils"
 	"log"
 	"net/http"
 	"os"
 	"time"
-	"ginapp/api/models"
-	"ginapp/api/utils"
+
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -163,43 +166,64 @@ func (app *Application) BuyFromCart() gin.HandlerFunc {
 
 func (app *Application) InstantBuy() gin.HandlerFunc {
 	s3BucketName := os.Getenv("S3_BUCKET_NAME")
-	
 
 	return func(c *gin.Context) {
-		UserQueryID := c.Query("userId")
-		if UserQueryID == "" {
-			log.Println("UserID is empty")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("UserID is empty"))
-		}
-		ProductQueryID := c.Query("productId")
-		if ProductQueryID == "" {
-			log.Println("Product_ID id is empty")
-			_ = c.AbortWithError(http.StatusBadRequest, errors.New("product_id is empty"))
-		}
-		productID, err := primitive.ObjectIDFromHex(ProductQueryID)
-		if err != nil {
-			log.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
+			// Récupérer les paramètres de requête
+			userID := c.Query("userId")
+			productID := c.Query("productId")
+			eventID := c.Query("eventId")
 
-		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		// Générer un QR code avec l'ID du produit
-		qrCodeData := "ProductID: " + ProductQueryID
+			// Vérifier si les paramètres de requête sont vides
+			if userID == "" || productID == "" || eventID == "" {
+					c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "userId, productId, and eventId are required"})
+					return
+			}
 
-		err = utils.GenerateAndUploadQRCode(qrCodeData, s3BucketName, "qrcode.png")		
-		if err != nil {
-				log.Println("Erreur lors de la génération et de l'enregistrement du QR code:", err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-		}
+			// Convertir l'ID du produit en ObjectID
+			productObjID, err := primitive.ObjectIDFromHex(productID)
 
-		err = InstantBuyer(ctx, app.TicketCollection, app.UserCollection, productID, UserQueryID)
-		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
-		}
-		c.IndentedJSON(200, "Successully placed the order")
+			if err != nil {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid productId"})
+					return
+			}
+
+			// Créer un contexte avec un délai d'expiration
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
+			// Générer le nom du fichier QR code
+			qrCodeFileName := fmt.Sprintf("qrcode_%s_%s_%s.png", eventID, productID, time.Now().Format("20060102150405"))
+
+			// Effectuer l'achat instantané
+			err = InstantBuyer(ctx, app.TicketCollection, app.UserCollection, productObjID, userID, qrCodeFileName)
+			if err != nil {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to perform instant buy"})
+					return
+			}
+
+			// Générer et télécharger le QR code
+			qrCodeData := "ProductID: " + productID
+			bucketBasics := utils.BucketBasics{S3Client: s3Client}
+			err = bucketBasics.GenerateAndUploadQRCode(qrCodeData, s3BucketName, qrCodeFileName)
+			if err != nil {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate and upload QR code"})
+					return
+			}
+
+			// Mettre à jour l'utilisateur avec le nom du fichier QR code
+			update := bson.M{
+					"$push": bson.M{
+							"purchases": qrCodeFileName,
+		},
+			}
+			_, err = app.UserCollection.UpdateOne(ctx, bson.M{"_id": userID}, update)
+			if err != nil {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+					return
+			}
+
+			// Répondre avec succès
+			c.JSON(http.StatusOK, gin.H{"message": "Successfully placed the order"})
 	}
 }
 
@@ -225,11 +249,26 @@ func BuyProductFromCart(ctx context.Context,  userCollection *mongo.Collection, 
 }
 
 // InstantBuyer purchases a product instantly in the database.
-func InstantBuyer(ctx context.Context, ticketCollection *mongo.Collection, userCollection *mongo.Collection, productID primitive.ObjectID , userID string) error {
-	// This function depends on your application logic.
-	// You might need to decrease the product's stock.
-	// You might need to update the product's stock in another collection.
-	// You would need to write that code here.
+func InstantBuyer(ctx context.Context, ticketCollection *mongo.Collection, userCollection *mongo.Collection, ticketID primitive.ObjectID , userID string,  qrCodeFileName string) error {
+	var ticket models.Ticket
+	err := ticketCollection.FindOne(ctx, bson.M{"_id": ticketID}).Decode(&ticket)
+	if err != nil {
+			return err
+	}
+	if (*ticket.Stock == 0) {
+		return errors.New("Ticket is out of stock")
+	}
+	// PREUVE D ACHAT ICI 
+
+    update := bson.M{
+			"$inc": bson.M{
+					"stock": -1,
+			},
+	}
+	_, err = ticketCollection.UpdateOne(ctx, bson.M{"_id": ticketID}, update)
+	if err != nil {
+			return err
+	}
 	return nil
 }
 

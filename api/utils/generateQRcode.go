@@ -4,13 +4,18 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"sync"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/skip2/go-qrcode"
 )
+type BucketBasics struct {
+	S3Client *s3.Client
+}
 
 func save(filename string, data []byte) error {
 	
@@ -28,7 +33,7 @@ func save(filename string, data []byte) error {
 	return nil
 }
 
-func GenerateAndSaveQRCodeOnDisk( data string) error {
+func (basics BucketBasics) GenerateAndSaveQRCodeOnDisk( data string) error {
 
 	code, err := qrcode.New(data, qrcode.Medium)
 	if err != nil {
@@ -51,7 +56,10 @@ func GenerateAndSaveQRCodeOnDisk( data string) error {
 	return nil
 }
 
-func GenerateAndUploadQRCode( data, s3BucketName, s3ObjectKeyPrefix string) error {
+func (basics BucketBasics) GenerateAndUploadQRCode( data, s3BucketName, s3ObjectKeyPrefix string) error {
+	
+	
+	
 	code, err := qrcode.New(data, qrcode.Medium)
 	if err != nil {
 		fmt.Println("Erreur lors de la création du QR code:", err)
@@ -63,39 +71,32 @@ func GenerateAndUploadQRCode( data, s3BucketName, s3ObjectKeyPrefix string) erro
 		fmt.Println("Erreur lors de la conversion du QR code en PNG:", err)
 		return err
 	}
-
+	pngReader := bytes.NewReader(png)
 	// Créez une session AWS
-	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		fmt.Println("Erreur lors de la configuration AWS:", err)
 		return err
 	}
-
-	// Initialisez un client S3
-	client := s3.NewFromConfig(cfg)
-
-	// Créez un nom unique pour le fichier PNG
-	s3ObjectKey := s3ObjectKeyPrefix + "qrcode.png"
-
-	// Configurez les paramètres de téléchargement
-	input := &s3.PutObjectInput{
-		Bucket: aws.String(s3BucketName),
-		Key:    aws.String(s3ObjectKey),
-		Body:   bytes.NewReader(png), // Chargez le contenu du PNG
+	_, err = basics.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: aws.String( s3BucketName),
+		Key:    aws.String(s3ObjectKeyPrefix),
+		Body:   pngReader,
+	})
+	if err != nil {
+		log.Printf("Couldn't upload file %v to %v:%v. Here's why: %v\n",
+			png, s3BucketName, s3ObjectKeyPrefix, err)
 	}
 
-	// Téléchargez le fichier PNG vers S3
-	_, err = client.PutObject(context.TODO(), input)
 	if err != nil {
 		fmt.Println("Erreur lors du téléchargement du fichier vers S3:", err)
 		return err
 	}
 
-	fmt.Printf("QR code enregistré avec succès dans le compartiment S3 sous la clé : %s\n", s3ObjectKey)
+	fmt.Printf("QR code enregistré avec succès dans le compartiment S3 sous la clé : %s\n", s3ObjectKeyPrefix)
 	return nil
 }
 
-func GenerateAndUploadMultipleQRCodes( data, n int, s3BucketName, s3ObjectKeyPrefix string) error {
+func (basics BucketBasics) GenerateAndUploadMultipleQRCodes( data, n int, s3BucketName, s3ObjectKeyPrefix string) error {
 	// Créez une "wait group" pour attendre la fin de toutes les goroutines
 	var wg sync.WaitGroup
 
