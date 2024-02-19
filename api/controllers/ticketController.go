@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"context"
-	"ginapp/database"
+	"fmt"
 	"ginapp/api/models"
+	"ginapp/database"
 	"log"
 	"net/http"
 	"time"
@@ -14,8 +15,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-var UserCollection *mongo.Collection = database.UserData(database.Client, "Users")
-var TicketCollection *mongo.Collection = database.ProductData(database.Client, "Tickets")
+var UserCollection *mongo.Collection = database.OpenCollection(database.Client, "Users")
+var TicketCollection *mongo.Collection = database.OpenCollection(database.Client, "Tickets")
 var Validate = validator.New()
 
 
@@ -87,32 +88,42 @@ func SearchTicketByQuery() gin.HandlerFunc {
 
 func AddTicket() gin.HandlerFunc {
 	return func(c *gin.Context) {
+			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
 			var ticket models.Ticket
 			if err := c.BindJSON(&ticket); err != nil {
 					c.IndentedJSON(http.StatusBadRequest, err)
 					return
 			}
 
-
-			userID := c.MustGet("userId").(primitive.ObjectID)
-			if ticket.DealerID != userID {
-					c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to create this ticket")
+			userIDStr, exists := c.Get("userId")
+			if !exists {
+					c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to add a ticket")
 					return
 			}
-
-			var event models.Event
-			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			err := EventCollection.FindOne(ctx, bson.M{"_id": ticket.EventID}).Decode(&event)
+			userID, err := primitive.ObjectIDFromHex(userIDStr.(string))
 			if err != nil {
-					c.IndentedJSON(http.StatusInternalServerError, err)
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to convert userId to ObjectID")
+					return
+			}
+			ticket.DealerID = userID
+			var event models.Event
+			eventIDStr := c.Param("eventId")
+			eventID, err := primitive.ObjectIDFromHex(eventIDStr)
+			if err != nil {
+					c.IndentedJSON(http.StatusBadRequest, "Invalid event ID")
+			}
+			fmt.Println(eventID)
+			err = EventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&event)
+			if err != nil {
+					c.IndentedJSON(http.StatusNotFound, "no event found with the given ID")
 					return
 			}
 			if event.DealerID != userID {
 					c.IndentedJSON(http.StatusUnauthorized, "The event does not belong to you")
 					return
 			}
-
+			ticket.EventID = eventID
 			ticket.CreatedAt = time.Now()           // Set CreatedAt to the current time
 			ticket.UpdatedAt = time.Now() 
 			_, err = TicketCollection.InsertOne(ctx, ticket)
@@ -138,7 +149,16 @@ func UpdateTicket() gin.HandlerFunc {
 					return
 			}
 
-			userID := c.MustGet("userId").(primitive.ObjectID)
+			userIDStr, exists := c.Get("userId")
+			if !exists {
+					c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to add a ticket")
+					return
+			}
+			userID, err := primitive.ObjectIDFromHex(userIDStr.(string))
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to convert userId to ObjectID")
+					return
+			}
 			if ticket.DealerID != userID {
 					c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to update this ticket")
 					return
@@ -181,11 +201,20 @@ func DeleteTicket() gin.HandlerFunc {
 			defer cancel()
 			err = TicketCollection.FindOne(ctx, bson.M{"_id": ticketID}).Decode(&ticket)
 			if err != nil {
-					c.IndentedJSON(http.StatusInternalServerError, err)
+					c.IndentedJSON(http.StatusNotFound, err)
 					return
 			}
 
-			userID := c.MustGet("userId").(primitive.ObjectID)
+			userIDStr, exists := c.Get("userId")
+			if !exists {
+					c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to add a ticket")
+					return
+			}
+			userID, err := primitive.ObjectIDFromHex(userIDStr.(string))
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to convert userId to ObjectID")
+					return
+			}
 			if ticket.DealerID != userID {
 					c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to delete this ticket")
 					return

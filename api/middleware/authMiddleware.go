@@ -22,10 +22,9 @@ func authenticateWithRole(c *gin.Context, role string) {
         c.Abort()
         return
     }
-    fmt.Println("ClientToken: ", ClientToken)
     claims, err := token.ValidateToken(ClientToken)
     if err != nil {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+        c.JSON(http.StatusUnauthorized, gin.H{"error": err})
         c.Abort()
         return
     }

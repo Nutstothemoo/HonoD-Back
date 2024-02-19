@@ -18,6 +18,8 @@ func UserRoutes(incomingRoutes *gin.Engine) {
 
 	authGroup := incomingRoutes.Group("/users")
 	authGroup.Use(middleware.Authentication())
+
 	authGroup.PUT("/:id", controllers.UpdateUser())
 	authGroup.DELETE("/:id", controllers.DeleteUser())
+
 }

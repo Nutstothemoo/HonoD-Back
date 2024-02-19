@@ -14,7 +14,7 @@ func TicketRoutes (incomingRoutes * gin.Engine){
 	dealerRoutes := incomingRoutes.Group("/dealer")
 
 	dealerRoutes.Use(middleware.DealerAuthentication())
-	dealerRoutes.POST("/tickets", controllers.AddTicket())
+	dealerRoutes.POST("/tickets/:eventId", controllers.AddTicket())
 	dealerRoutes.PUT("/tickets/:id", controllers.UpdateTicket())
 	dealerRoutes.DELETE("/tickets/:id", controllers.DeleteTicket())
 

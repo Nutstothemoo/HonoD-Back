@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"sync"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -31,6 +30,15 @@ func save(filename string, data []byte) error {
 	}
 
 	return nil
+}
+
+func NewS3Client() (*s3.Client, error) {
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+			return nil, err
+	}
+
+	return s3.NewFromConfig(cfg), nil
 }
 
 func (basics BucketBasics) GenerateAndSaveQRCodeOnDisk( data string) error {

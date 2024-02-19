@@ -3,6 +3,7 @@ package token
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -17,7 +18,7 @@ import (
 )
 
 
-var UserData *mongo.Collection = database.UserData(database.Client, "Users")
+var UserData *mongo.Collection = database.OpenCollection(database.Client, "Users")
 var SECRET_KEY = os.Getenv("SUPER_SECRET_KEY")
 
 type SignedDetails struct {
@@ -58,6 +59,7 @@ func TokenGenerator(email string, firstname string, lastname string, uid string,
 }
 
 func ValidateToken(signedtoken string) (claims *SignedDetails, err error) {
+	fmt.Println("Signed Token: ", signedtoken)
 	token, err := jwt.ParseWithClaims(signedtoken, &SignedDetails{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(SECRET_KEY), nil
 	})
@@ -67,7 +69,7 @@ func ValidateToken(signedtoken string) (claims *SignedDetails, err error) {
 	}
 	claims, ok := token.Claims.(*SignedDetails)
 	if !ok {
-			err = errors.New("The Token is invalid")
+			err = errors.New("the token is invalid")
 			return
 	}
 	if claims.ExpiresAt < time.Now().Local().Unix() {

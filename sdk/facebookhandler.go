@@ -20,7 +20,7 @@ import (
 	"ginapp/database"
 )
 
-var UserCollection *mongo.Collection = database.UserData(database.Client, "Users")
+var UserCollection *mongo.Collection = database.OpenCollection(database.Client, "Users")
 
 func InitFacebookLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {

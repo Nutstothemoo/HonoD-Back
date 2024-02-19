@@ -113,9 +113,14 @@ func AddEvent() gin.HandlerFunc {
 				return
 		}
 
-		dealerID, exists := c.MustGet("userId").(primitive.ObjectID)
+		dealerIDStr, exists := c.Get("userId")
 		if !exists {
-				c.IndentedJSON(http.StatusBadRequest, "User ID not found")
+				c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to add a ticket")
+				return
+		}
+		dealerID, err := primitive.ObjectIDFromHex(dealerIDStr.(string))
+		if err != nil {
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to convert userId to ObjectID")
 				return
 		}
 
@@ -125,13 +130,13 @@ func AddEvent() gin.HandlerFunc {
 
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		_, err := EventCollection.InsertOne(ctx, event)
+		_, err = EventCollection.InsertOne(ctx, event)
 		if err != nil {
 				c.IndentedJSON(http.StatusInternalServerError, err)
 				return
 		}
-		c.IndentedJSON(201, "Successfully added the event")
-}
+		c.IndentedJSON(201, gin.H{"message": "Successfully added the event", "event": event})
+	}
 }
 
 func GetEventFromDateToDate() gin.HandlerFunc {
@@ -165,9 +170,14 @@ func UpdateEvent() gin.HandlerFunc {
 		}
 
 	
-		dealerID, exists := c.MustGet("userId").(primitive.ObjectID)
+		dealerIDStr, exists := c.Get("userId")
 		if !exists {
-				c.IndentedJSON(http.StatusBadRequest, "User ID not found")
+				c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to update a ticket")
+				return
+		}
+		dealerID, err := primitive.ObjectIDFromHex(dealerIDStr.(string))
+		if err != nil {
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to convert userId to ObjectID")
 				return
 		}
 
@@ -175,7 +185,11 @@ func UpdateEvent() gin.HandlerFunc {
 		defer cancel()
 
 		var existingEvent models.Event
-		err := EventCollection.FindOne(ctx, bson.M{"_id": event.ID}).Decode(&existingEvent)
+		eventID, err := primitive.ObjectIDFromHex(c.Param("eventId"))
+		if err != nil {
+				c.IndentedJSON(http.StatusBadRequest, "Invalid event ID")
+		}
+		err = EventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&existingEvent)
 		if err != nil {
 				c.IndentedJSON(http.StatusInternalServerError, "Error querying the database")
 				return
@@ -187,8 +201,7 @@ func UpdateEvent() gin.HandlerFunc {
 		}
 
 		event.UpdatedAt = time.Now()
-
-		_, err = EventCollection.UpdateOne(ctx, bson.M{"_id": event.ID}, bson.M{"$set": event})
+		_, err = EventCollection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"$set": event})
 		if err != nil {
 				c.IndentedJSON(http.StatusInternalServerError, err)
 				return
@@ -207,9 +220,14 @@ func DeleteEvent() gin.HandlerFunc {
 				return
 		}
 
-		dealerID, exists := c.MustGet("userId").(primitive.ObjectID)
+		dealerIDStr, exists := c.Get("userId")
 		if !exists {
-				c.IndentedJSON(http.StatusBadRequest, "User ID not found")
+				c.IndentedJSON(http.StatusUnauthorized, "You are not authorized to add a ticket")
+				return
+		}
+		dealerID, err := primitive.ObjectIDFromHex(dealerIDStr.(string))
+		if err != nil {
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to convert userId to ObjectID")
 				return
 		}
 

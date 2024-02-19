@@ -7,7 +7,6 @@ import (
 )
 
 type Event struct {
-	ID                primitive.ObjectID `bson:"_id" json:"_id"`
 	Slug              string             `json:"slug"`
 	StartTime         int64              `json:"startTime"`
 	EndTime           int64              `json:"endTime"`

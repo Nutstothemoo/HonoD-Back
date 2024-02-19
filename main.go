@@ -37,6 +37,7 @@ func main() {
 		database.OpenCollection(database.Client, "Tickets"), 
 		database.OpenCollection(database.Client, "Users"),		
 		database.OpenCollection(database.Client, "Events"),
+		database.OpenCollection(database.Client, "TicketUnit"),
 	)
 
 	r := setupRouter(app)
@@ -47,8 +48,8 @@ func main() {
 }
 
 func setupRouter(app *controllers.Application) *gin.Engine {
-	r := gin.New()
-	r.Use(gin.Logger())
+		r := gin.New()
+		r.Use(gin.Logger())
 
 		// Add CORS middleware
 
@@ -56,20 +57,21 @@ func setupRouter(app *controllers.Application) *gin.Engine {
 		config.AllowAllOrigins = true // Allow all origins
 		config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"} // Allow all methods
 		config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"} // Allow all headers
+		
 		r.Use(cors.New(config))
 
+		r.GET("/ping", func(c *gin.Context) {
+			c.String(http.StatusOK, "pong")
+		})
 
-
-	r.GET("/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong")
-	})
 	r.GET("/login/facebook", sdk.InitFacebookLogin())
 	r.GET("/facebook/callback", sdk.HandleFacebookLogin())
 
 	r.GET("/login/google", sdk.InitGoogleLogin())
 	r.GET("/google/callback", sdk.HandleGoogleLogin())
-	// routes.Use(middleware.Authentication())
-	
+
+	r.POST("/instantBuy/:ticketId/:eventId", middleware.Authentication(), app.InstantBuy())
+
 	routes.UserRoutes(r)
 	routes.EventRoutes(r)
 	routes.TicketRoutes(r)

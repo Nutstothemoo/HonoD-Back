@@ -16,8 +16,8 @@
 			dealerRoutes := incomingRoutes.Group("/dealer")		
 			dealerRoutes.Use(middleware.DealerAuthentication())
 			dealerRoutes.POST("/events", controllers.AddEvent())
-			dealerRoutes.PUT("/events/:id", controllers.UpdateEvent())
-			dealerRoutes.DELETE("/events/:id", controllers.DeleteEvent())
+			dealerRoutes.PUT("/events/:eventId", controllers.UpdateEvent())
+			dealerRoutes.DELETE("/events/:eventId", controllers.DeleteEvent())
 	}
 	
 	func AdminEventRoutes (incomingRoutes *gin.RouterGroup){
