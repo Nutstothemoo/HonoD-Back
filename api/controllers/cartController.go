@@ -50,15 +50,14 @@ func (app *Application) InstantBuy() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to assert userID"})
 			return
 		}
-		ticketID := c.Query("ticketId")
-		eventID := c.Query("eventId")
-
+		ticketID := c.Param("ticketId")
+		eventID := c.Param("eventId")
 
 		if userID == "" || ticketID == "" || eventID == "" {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "userId, productId, and eventId are required"})
 			return
 		}
-		qrCodeFileName := fmt.Sprintf("%s/%s/qrcode_%s_%s.png", eventID, ticketID, userID, time.Now().Format("20060102150405"))
+		qrCodeFileName := fmt.Sprintf("%s/%s/qrcode_%s_%s.png", eventID, ticketID, userID, time.Now().Format("2006-01-02 15:04:05"))
 		price, err := updateTicketCount(ctx, app.TicketCollection, app.UserCollection, ticketID, userID.(string), qrCodeFileName)
 		if err != nil {
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -80,7 +79,7 @@ func (app *Application) InstantBuy() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "Successfully placed the order"})
-}
+	}
 }
 
 func (app *Application) updateUserPurchases(ctx context.Context, userID string, eventID string, price uint64, qrCodeFileName string) error {
@@ -121,8 +120,12 @@ return err
 
 func updateTicketCount(ctx context.Context, ticketCollection *mongo.Collection, userCollection *mongo.Collection, ticketID string , userID string,  qrCodeFileName string) (uint64, error) {
 	var ticket models.Ticket
-	err := ticketCollection.FindOne(ctx, bson.M{"_id": ticketID}).Decode(&ticket)
-		if err != nil {
+	ticketObjectID, err := primitive.ObjectIDFromHex(ticketID)
+	if err != nil {
+				return 0, err
+	}
+	err = ticketCollection.FindOne(ctx, bson.M{"_id": ticketObjectID}).Decode(&ticket)
+	if err != nil {
 				return 0, err
 		}
 		if (*ticket.Stock == 0) {
@@ -130,12 +133,12 @@ func updateTicketCount(ctx context.Context, ticketCollection *mongo.Collection, 
 		}
 		// PREUVE D ACHAT ICI 
 
-	    update := bson.M{
+		update := bson.M{
 				"$inc": bson.M{
 						"stock": -1,
 				},
 		}
-	_, err = ticketCollection.UpdateOne(ctx, bson.M{"_id": ticketID}, update)
+	_, err = ticketCollection.UpdateOne(ctx, bson.M{"_id": ticketObjectID}, update)
 	if err != nil {
 			return 0, err
 	}

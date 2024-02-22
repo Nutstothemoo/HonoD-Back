@@ -3,7 +3,6 @@ package token
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -59,7 +58,6 @@ func TokenGenerator(email string, firstname string, lastname string, uid string,
 }
 
 func ValidateToken(signedtoken string) (claims *SignedDetails, err error) {
-	fmt.Println("Signed Token: ", signedtoken)
 	token, err := jwt.ParseWithClaims(signedtoken, &SignedDetails{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(SECRET_KEY), nil
 	})

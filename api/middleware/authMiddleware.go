@@ -1,7 +1,6 @@
 package middleware
 
 import (
-    "fmt"
     token "ginapp/api/tokens"
     "net/http"
 

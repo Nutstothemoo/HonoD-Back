@@ -45,35 +45,33 @@ func HandleFacebookLogin() gin.HandlerFunc {
 
 			if err != nil || token == nil {
 
-					fmt.Println("Error exchanging code for token:", err)
-					c.JSON(500, gin.H{"message": "Error exchanging code for token"})
+							c.JSON(500, gin.H{"message": "Error exchanging code for token"})
 					return
 			}
 
 			fbUserDetails, fbUserDetailsError := GetUserInfoFromFacebook(token.AccessToken)
-
 			if fbUserDetailsError != nil {
-					fmt.Println("Error getting user details:", fbUserDetailsError)
 					c.JSON(500, gin.H{"message": "Error getting user details"})
 					return
 			}
-			fmt.Println("fbUserDetails:", fbUserDetails)
 			founduser, err := SignInUser(fbUserDetails, UserCollection)
 			if err != nil {
-					fmt.Println("Error signing in user:", err)
-			} else {
-					fmt.Println("Found user:", founduser)
-			}
-			if founduser.Email == nil || founduser.FirstName == nil || founduser.LastName == nil || founduser.Role == nil {
-				fmt.Println("One or more fields of the user are nil")
+				c.JSON(http.StatusInternalServerError, gin.H{
+						"error": fmt.Sprintf("Error signing in user: %v", err),
+				})
 				return
+		} 
+		if founduser.Email == nil || founduser.FirstName == nil || founduser.LastName == nil || founduser.Role == nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+					"error": "One or more fields of the user are nil",
+			})
+			return
 		}
-			authtoken, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.FirstName, *founduser.LastName, founduser.User_ID, *founduser.Role) 
+		authtoken, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.FirstName, *founduser.LastName, founduser.User_ID, *founduser.Role) 
     
 
-			generate.UpdateAllTokens(authtoken, refreshToken, founduser.User_ID)
-			fmt.Println("User ID:", founduser.User_ID)
-			http.SetCookie(c.Writer, &http.Cookie{
+		generate.UpdateAllTokens(authtoken, refreshToken, founduser.User_ID)
+		http.SetCookie(c.Writer, &http.Cookie{
 					Name:     "auth_token",
 					Value:    authtoken,
 					MaxAge:   60 * 60 * 240,    // 10 day
@@ -88,7 +86,6 @@ func HandleFacebookLogin() gin.HandlerFunc {
 					Phone:     *founduser.Phone,
 					Username:  *founduser.Username,
 			}
-			fmt.Println("SafeUser:", safeUser)
 			c.JSON(200, gin.H{
 				"user":        safeUser,
 			})
@@ -99,12 +96,11 @@ func SignInUser(userDetail UserDetails, UserCollection *mongo.Collection) (*mode
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
-	fmt.Println("User Details:", userDetail) // 
 	if userDetail == (UserDetails{}) {
 			return nil, errors.New("user details can't be empty")
 	}
 
-	if userDetail.Email == "" {
+if userDetail.Email == "" {
 			return nil, errors.New("email can't be empty")
 	}
 
@@ -113,12 +109,9 @@ func SignInUser(userDetail UserDetails, UserCollection *mongo.Collection) (*mode
 	}
 
 	var user models.User
-	fmt.Println("Finding user in database:", userDetail.Email) //
 	err := UserCollection.FindOne(ctx, bson.M{"email": userDetail.Email}).Decode(&user)
-	fmt.Println("Finding user in database1:", user) // Print the error if any
 	if err != nil {
 			if err == mongo.ErrNoDocuments {
-				fmt.Println("User not found in database, creating new user")
 					defaultRole := "user"
 					emptyString := ""
 
@@ -156,14 +149,10 @@ func SignInUser(userDetail UserDetails, UserCollection *mongo.Collection) (*mode
 							return nil, inserterr
 					}
 					
-					fmt.Println("User created successfully")
 					return &user, nil
 			}
-			fmt.Println("Error finding user in database:", err) // Print the error if any
-
 			return nil, err
 	}
-	
 	return &user, nil
 }
 

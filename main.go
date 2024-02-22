@@ -41,9 +41,9 @@ func main() {
 	)
 
 	r := setupRouter(app)
-	fmt.Println("╔════════════════════════════════════════╗")
+	fmt.Println(color.GreenString("╔════════════════════════════════════════╗"))
 	log.Println(color.GreenString("http://localhost:" + port))
-	fmt.Println("╚════════════════════════════════════════╝")
+	fmt.Println(color.GreenString("╚════════════════════════════════════════╝"))
 	r.Run("localhost:"+ port ) 
 }
 

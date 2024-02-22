@@ -1,14 +1,12 @@
 package sdk
 
 import (
-
-    "encoding/json"
-    "errors"
-    "net/http"
-    "os"
-
-    "golang.org/x/oauth2"
-    facebookOAuth "golang.org/x/oauth2/facebook"
+	"encoding/json"
+	"errors"
+	"net/http"
+	"os"
+	"golang.org/x/oauth2"
+	facebookOAuth "golang.org/x/oauth2/facebook"
 )
 
 // UserDetails is struct used for user details
@@ -24,9 +22,10 @@ func GetFacebookOAuthConfig() *oauth2.Config {
     }
 }
 
+
 // GetRandomOAuthStateString will return random string
 func GetRandomOAuthStateString() string {
-    return "SomeRandomStringAlgorithmForMoreSecurity"
+    return "qeffegfaoffr"
 }
 
 // GetUserInfoFromFacebook will return information of user which is fetched from facebook
@@ -34,7 +33,6 @@ func GetUserInfoFromFacebook(token string) (UserDetails, error) {
     var fbUserDetails UserDetails
     facebookUserDetailsRequest, _ := http.NewRequest("GET", "https://graph.facebook.com/me?fields=id,name,email&access_token="+ token, nil)
     facebookUserDetailsResponse, facebookUserDetailsResponseError := http.DefaultClient.Do(facebookUserDetailsRequest)
-
     if facebookUserDetailsResponseError != nil {
         return UserDetails{}, errors.New("Error occurred while getting information from Facebook")
     }
