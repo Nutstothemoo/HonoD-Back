@@ -19,6 +19,7 @@ type Ticket struct {
 	UpdatedAt  time.Time          `bson:"updated_at" json:"updated_at"`
 }
 
+
 type TicketUnit struct {
 	EventID   primitive.ObjectID 		`bson:"event_id" json:"event_id"`
 	OwnerID   primitive.ObjectID 		`bson:"owner_id" json:"owner_id"`

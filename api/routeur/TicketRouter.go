@@ -10,7 +10,7 @@ func TicketRoutes (incomingRoutes * gin.Engine){
 
 	incomingRoutes.GET("/users/productview", controllers.SearchTicket())
 	incomingRoutes.GET("/users/search", controllers.SearchTicketByQuery())
-
+	incomingRoutes.GET("/tickets/:id", controllers.GetTickets())
 	dealerRoutes := incomingRoutes.Group("/dealer")
 
 	dealerRoutes.Use(middleware.DealerAuthentication())

@@ -84,6 +84,25 @@ func SearchTicketByQuery() gin.HandlerFunc {
 	}
 }
 
+func GetTickets() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		eventID, err := primitive.ObjectIDFromHex(c.Param("id"))
+		if err != nil {
+			c.IndentedJSON(http.StatusBadRequest, "Invalid Event ID")
+			return
+		}
+		var ticket models.Ticket
+		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		err = TicketCollection.FindOne(ctx, bson.M{"event_id": eventID}).Decode(&ticket)
+		if err != nil {
+			c.IndentedJSON(http.StatusNotFound, "no ticket found with the given ID")
+			return
+		}
+		c.IndentedJSON(200, ticket)
+	}
+}
+
 // DEALER
 
 func AddTicket() gin.HandlerFunc {
