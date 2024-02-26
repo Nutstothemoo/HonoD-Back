@@ -21,10 +21,6 @@ func GetEvents() gin.HandlerFunc {
 		defer cancel()
 		opts := options.Find().SetSort(bson.D{{"startTime", 1}})
     events, err := EventCollection.Find(ctx, bson.D{}, opts)
-		// filter := bson.M{"startTime": bson.M{"$gte": time.Now().Unix()}}
-		// opts := options.Find().SetSort(bson.D{{"startTime", 1}})
-
-		// events, err := EventCollection.Find(ctx,filter,opts)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return

@@ -86,20 +86,32 @@ func SearchTicketByQuery() gin.HandlerFunc {
 
 func GetTickets() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		eventID, err := primitive.ObjectIDFromHex(c.Param("id"))
-		if err != nil {
-			c.IndentedJSON(http.StatusBadRequest, "Invalid Event ID")
-			return
-		}
-		var ticket models.Ticket
-		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		err = TicketCollection.FindOne(ctx, bson.M{"event_id": eventID}).Decode(&ticket)
-		if err != nil {
-			c.IndentedJSON(http.StatusNotFound, "no ticket found with the given ID")
-			return
-		}
-		c.IndentedJSON(200, ticket)
+			eventID, err := primitive.ObjectIDFromHex(c.Param("id"))
+			if err != nil {
+					c.IndentedJSON(http.StatusBadRequest, "Invalid Event ID")
+					return
+			}
+			var tickets []models.Ticket
+			var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			cursor, err := TicketCollection.Find(ctx, bson.M{"event_id": eventID})
+			if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to get tickets")
+					return
+			}
+			fmt.Println("cursor",cursor)
+			defer cursor.Close(ctx)
+			for cursor.Next(ctx) {
+					var ticket models.Ticket
+					cursor.Decode(&ticket)
+					tickets = append(tickets, ticket)
+			}
+			if err := cursor.Err(); err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to get tickets")
+					return
+			}
+			fmt.Println("tickets",tickets)
+			c.IndentedJSON(200, tickets)
 	}
 }
 

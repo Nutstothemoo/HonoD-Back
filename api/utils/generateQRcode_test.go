@@ -1,11 +1,13 @@
 package utils
 
 import (
-    "context"
-    "testing"
-    "github.com/aws/aws-sdk-go-v2/config"
-    "github.com/aws/aws-sdk-go-v2/service/s3"
-    "github.com/joho/godotenv"
+	"context"
+	"testing"
+	"time"
+
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/joho/godotenv"
 )
 
 func TestGenerateAndUploadQRCode(t *testing.T) {
@@ -34,4 +36,45 @@ func TestGenerateAndUploadQRCode(t *testing.T) {
     }
 
     t.Log("QR code généré et téléversé avec succès")
+}
+
+
+func TestGenerateAndUploadMultipleQRCodes(t *testing.T) {
+    
+    ctx := context.TODO()
+    err := godotenv.Load("../../.env")
+    if err != nil {
+        t.Fatalf("Erreur lors du chargement du fichier .env : %v", err)
+    }
+
+    s3BucketName := "honod"
+
+    data := map[string]string{
+        "data1": "prefix1",
+        "data2": "prefix2",
+        "data3": "prefix1",
+        "data4": "prefix2",
+        "data5": "prefix1",
+        "data6": "prefix2",
+    }
+
+    cfg, err := config.LoadDefaultConfig(ctx)
+    if err != nil {
+        t.Fatalf("Erreur lors du chargement de la configuration par défaut AWS : %v", err)
+    }
+    s3Client := s3.NewFromConfig(cfg)
+
+    // Initialisez l'objet BucketBasics avec votre client S3
+    bucketBasics := BucketBasics{S3Client: s3Client}
+    start := time.Now()
+
+    err = bucketBasics.GenerateAndUploadMultipleQRCodes(data, s3BucketName)
+
+    elapsed := time.Since(start)
+
+    if err != nil {
+        t.Errorf("GenerateAndUploadMultipleQRCodes returned an error: %v", err)
+    }
+
+    t.Logf("GenerateAndUploadMultipleQRCodes took %s", elapsed)
 }

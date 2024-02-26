@@ -8,6 +8,7 @@ import (
 
 
 type Ticket struct {
+	ID         primitive.ObjectID `bson:"_id" json:"id"`
 	TicketName *string           	`json:"ticket_name" bson:"ticket_name"`
 	Price      *uint64           	`json:"price" bson:"price"`
 	Rating     *uint8           	`json:"rating" bson:"rating"`

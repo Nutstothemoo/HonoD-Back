@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-
+	"net/http"
 	// "ginapp/api/auth"
 	"ginapp/api/controllers"
 	"ginapp/api/middleware"
@@ -11,7 +11,6 @@ import (
 	"ginapp/database"
 	"ginapp/sdk"
 	"log"
-	"net/http"
 
 	// "golang.org/x/oauth2"
 	// "golang.org/x/oauth2/google"
@@ -25,6 +24,7 @@ import (
 )
 
 func main() {
+
 	err := godotenv.Load(".env")
 	if err != nil {
     log.Println(color.RedString("Error loading .env file"))
