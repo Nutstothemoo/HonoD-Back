@@ -66,7 +66,7 @@ func (app *Application) InstantBuy() gin.HandlerFunc {
 
 		qrCodeData := "ProductID: " + ticketID
 		bucketBasics := utils.BucketBasics{S3Client: s3Client}
-		err = bucketBasics.GenerateAndUploadQRCode(qrCodeData, s3BucketName, qrCodeFileName)
+		err = bucketBasics.GenerateAndUploadQRCode(ctx, qrCodeData, s3BucketName, qrCodeFileName)
 		if err != nil {
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate and upload QR code"})
 				return

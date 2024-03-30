@@ -16,6 +16,7 @@ type Event struct {
 	Geolocation       Geolocation        `json:"geolocation"`
 	IsFestival        bool               `json:"isFestival"`
 	Name              string             `json:"name"`
+	Color 					 	string             `json:"color"`
 	FeaturedText      string             `json:"featuredText"`
 	Artworks          []Artwork          `json:"artworks"`
 	CancelledAt       *int64             `json:"cancelledAt"`

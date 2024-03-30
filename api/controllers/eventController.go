@@ -2,10 +2,13 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"ginapp/api/models"
 	"ginapp/database"
+	"math/rand"
 	"net/http"
 	"time"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -119,11 +122,23 @@ func AddEvent() gin.HandlerFunc {
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to convert userId to ObjectID")
 				return
 		}
-
+			// If color field is empty, generate a random color
+			if event.Color == "" {
+				r := rand.Intn(256)
+				g := rand.Intn(256)
+				b := rand.Intn(256)
+				event.Color = fmt.Sprintf("#%02X%02X%02X", r, g, b)
+		}
 		event.DealerID = dealerID              // Set DealerID to the dealerID from context
 		event.CreatedAt = time.Now()           // Set CreatedAt to the current time
 		event.UpdatedAt = time.Now()           // Set UpdatedAt to the current time
-
+			// If color field is empty, generate a random color
+			if event.Color == "" {
+				r := rand.Intn(256)
+				g := rand.Intn(256)
+				b := rand.Intn(256)
+				event.Color = fmt.Sprintf("#%02X%02X%02X", r, g, b)
+		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		_, err = EventCollection.InsertOne(ctx, event)

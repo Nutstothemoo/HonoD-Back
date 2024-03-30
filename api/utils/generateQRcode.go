@@ -3,15 +3,18 @@ package utils
 import (
 	"bytes"
 	"context"
-	"fmt"
-	"log"
-	"os"
-	"sync"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"sync"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -69,14 +72,28 @@ func (basics BucketBasics) GenerateAndSaveQRCodeOnDisk( data string) error {
 	return nil
 }
 
-func (basics BucketBasics) GenerateAndUploadQRCode( data, s3BucketName, s3ObjectKeyPrefix string) error {
+func (basics BucketBasics) GenerateAndUploadQRCode( ctx context.Context, data, s3BucketName, s3ObjectKeyPrefix string) error {
 	
-	// encryptionKey := os.Getenv("ENCRYPTION_KEY")
-	// block, err := aes.NewCipher([]byte(encryptionKey))
-	// if err != nil {
-	// 		return err
-	// }
-	code, err := qrcode.New(data, qrcode.Medium)
+	encryptionKey := os.Getenv("ENCRYPTION_KEY")
+	block, err := aes.NewCipher([]byte(encryptionKey))
+	if err != nil {
+			return err
+	}
+
+	ciphertext := make([]byte, aes.BlockSize+len(data))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+			return err
+	}
+
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], []byte(data))
+
+	// Ajout d' une signature numérique
+	hash := sha256.Sum256(ciphertext)
+	signedData := append(ciphertext, hash[:]...)
+
+	code, err := qrcode.New(base64.StdEncoding.EncodeToString(signedData), qrcode.Medium)
 	if err != nil {
 		fmt.Println("Erreur lors de la création du QR code:", err)
 		return err
@@ -88,12 +105,11 @@ func (basics BucketBasics) GenerateAndUploadQRCode( data, s3BucketName, s3Object
 		return err
 	}
 	pngReader := bytes.NewReader(png)
-	// Créez une session AWS
 	if err != nil {
 		fmt.Println("Erreur lors de la configuration AWS:", err)
 		return err
 	}
-	_, err = basics.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+	_, err = basics.S3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String( s3BucketName),
 		Key:    aws.String(s3ObjectKeyPrefix),
 		Body:   pngReader,
@@ -161,4 +177,40 @@ func (basics BucketBasics) GenerateAndUploadMultipleQRCodes(data map[string]stri
 	wg.Wait()
 
 	return nil
+}
+
+func DecryptAndVerifyQRCodeData(qrCodeData, encryptionKey string) (string, error) {
+	// Decode the QR code data from base64
+	signedData, err := base64.StdEncoding.DecodeString(qrCodeData)
+	if err != nil {
+			return "", err
+	}
+
+	// Separate the ciphertext and the signature
+	ciphertext := signedData[:len(signedData)-sha256.Size]
+	signature := signedData[len(signedData)-sha256.Size:]
+
+	// Verify the signature
+	hash := sha256.Sum256(ciphertext)
+	if !bytes.Equal(hash[:], signature) {
+			return "", errors.New("invalid signature")
+	}
+
+	// Decrypt the data
+	block, err := aes.NewCipher([]byte(encryptionKey))
+	if err != nil {
+			return "", err
+	}
+
+	if len(ciphertext) < aes.BlockSize {
+			return "", errors.New("ciphertext too short")
+	}
+
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
+
+	stream := cipher.NewCFBDecrypter(block, iv)
+	stream.XORKeyStream(ciphertext, ciphertext)
+
+	return string(ciphertext), nil
 }

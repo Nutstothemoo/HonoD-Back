@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -75,8 +76,9 @@ func HandleFacebookLogin() gin.HandlerFunc {
 					Name:     "auth_token",
 					Value:    authtoken,
 					MaxAge:   60 * 60 * 240,    // 10 day
-					HttpOnly: false,             // The cookie is not accessible via JavaScript
-					Secure:   false, 
+					HttpOnly: false, 
+					Secure:   os.Getenv("ENV") == "production", 
+					Path:     "/",         
 			})
 			safeUser := SafeUser{
 					UserID:    founduser.User_ID,
@@ -86,6 +88,8 @@ func HandleFacebookLogin() gin.HandlerFunc {
 					Phone:     *founduser.Phone,
 					Username:  *founduser.Username,
 			}
+			fmt.Println("coucou")
+			fmt.Println(authtoken)
 			c.JSON(200, gin.H{
 				"user":        safeUser,
 			})
