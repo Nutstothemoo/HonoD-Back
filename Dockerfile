@@ -1,9 +1,22 @@
-FROM golang:1.21.6
+FROM alpine:latest
 
-WORKDIR /go/src/app
+RUN ls -la
+# Copiez votre application dans le conteneur
+COPY README.md /app/README.md
 
-COPY . .
+# Définissez le répertoire de travail
+WORKDIR /app
 
-RUN go build -o main main.go
+# Exécutez votre application lors du démarrage du conteneur
+CMD ["./mon_api"]
 
-CMD ["./main"]
+# FROM alpine:latest
+
+# # Copiez votre application dans le conteneur
+# COPY mon_api_linux_amd64 /app/mon_api
+
+# # Définissez le répertoire de travail
+# WORKDIR /app
+
+# # Exécutez votre application lors du démarrage du conteneur
+# CMD ["./mon_api"]
