@@ -1,6 +1,6 @@
 module ginapp
 
-go 1.21.6
+go 1.21.5
 
 require (
 	firebase.google.com/go v3.13.0+incompatible

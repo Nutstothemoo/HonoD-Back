@@ -1,22 +1,15 @@
+# Étape de lancement
+# CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main
 FROM alpine:latest
 
-RUN ls -la
-# Copiez votre application dans le conteneur
-COPY README.md /app/README.md
+# COPY main /app/main
+# Ajouter les fichiers binaires
+# Copier tout le répertoire courant dans /app
 
-# Définissez le répertoire de travail
+COPY . /app
+
+# Définir le répertoire de travail dans le conteneur
 WORKDIR /app
 
-# Exécutez votre application lors du démarrage du conteneur
-CMD ["./mon_api"]
-
-# FROM alpine:latest
-
-# # Copiez votre application dans le conteneur
-# COPY mon_api_linux_amd64 /app/mon_api
-
-# # Définissez le répertoire de travail
-# WORKDIR /app
-
-# # Exécutez votre application lors du démarrage du conteneur
-# CMD ["./mon_api"]
+# Exécuter l'application
+CMD ["./amd64"]
