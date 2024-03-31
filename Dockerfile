@@ -7,6 +7,7 @@ FROM alpine:latest
 # Copier tout le répertoire courant dans /app
 
 COPY . /app
+RUN chmod +x /app/amd64
 
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /app
