@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+
 	// "ginapp/api/auth"
 	"ginapp/api/controllers"
 	"ginapp/api/middleware"
-	"ginapp/api/routeur"
+	routes "ginapp/api/routeur"
 	"ginapp/database"
 	"ginapp/sdk"
 	"log"
@@ -15,7 +16,8 @@ import (
 	// "golang.org/x/oauth2"
 	// "golang.org/x/oauth2/google"
 	"os"
-	"firebase.google.com/go"
+
+	firebase "firebase.google.com/go"
 	"github.com/fatih/color"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -44,7 +46,7 @@ func main() {
 	fmt.Println(color.GreenString("╔════════════════════════════════════════╗"))
 	log.Println(color.GreenString("http://localhost:" + port))
 	fmt.Println(color.GreenString("╚════════════════════════════════════════╝"))
-	r.Run("localhost:"+ port ) 
+	r.Run(":"+ port ) 
 }
 
 func setupRouter(app *controllers.Application) *gin.Engine {
