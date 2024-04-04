@@ -89,6 +89,24 @@ func SignUp() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "not created"})
 			return
 		}
+		http.SetCookie(c.Writer, &http.Cookie{
+            Name:     "auth_token",
+            Value:    token,
+            MaxAge:   60 * 60 * 240,    // 10 day
+            HttpOnly: true,            // The cookie is not accessible via JavaScript
+            Secure:   false,            // The cookie is not sent only over HTTPS
+            SameSite: http.SameSiteStrictMode, // The cookie is sent only to the same site as the one that originated it
+        })
+
+        // Set the refresh_token cookie
+        http.SetCookie(c.Writer, &http.Cookie{
+            Name:     "refresh_token",
+            Value:    refreshtoken,
+            MaxAge:   60 * 60 * 240,    // 10 day
+            HttpOnly: true,            // The cookie is not accessible via JavaScript
+            Secure:   false,            // The cookie is not sent only over HTTPS
+            SameSite: http.SameSiteStrictMode, // The cookie is sent only to the same site as the one that originated it
+        })
 		defer cancel()
 		c.JSON(201, "Successfully Signed Up!!")
 	}
@@ -133,6 +151,15 @@ func Login() gin.HandlerFunc {
 			Secure:   false,            // The cookie is not sent only over HTTPS
 			SameSite: http.SameSiteStrictMode, // The cookie is sent only to the same site as the one that originated it
 		})
+
+		http.SetCookie(c.Writer, &http.Cookie{
+            Name:     "refresh_token",
+            Value:    refreshToken,
+            MaxAge:   60 * 60 * 240,    // 10 day
+            HttpOnly: true,            // The cookie is not accessible via JavaScript
+            Secure:   false,            // The cookie is not sent only over HTTPS
+            SameSite: http.SameSiteStrictMode, // The cookie is sent only to the same site as the one that originated it
+        })
 
 		safeUser := SafeUser{
 			Email:     *founduser.Email,
@@ -335,4 +362,42 @@ func AdminGetUser() gin.HandlerFunc {
 			return
 		}
 	}
+}
+
+func RefreshToken() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+        defer cancel()
+
+        // Extract the refresh token from the request
+        refreshToken := c.Request.Header.Get("Refresh-Token")
+        if refreshToken == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "No refresh token provided"})
+            return
+        }
+
+        // Verify the refresh token
+        email, err := generate.VerifyRefreshToken(refreshToken)
+        if err != nil {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
+            return
+        }
+
+        // Find the user associated with the refresh token
+        var user models.User
+        err = UserCollection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
+            return
+        }
+
+        // Generate a new token and refresh token
+        token, newRefreshToken, _ := generate.TokenGenerator(*user.Email, *user.FirstName, *user.LastName, user.User_ID, *user.Role)
+
+        // Update the user's tokens in the database
+        generate.UpdateAllTokens(token, newRefreshToken, user.User_ID)
+
+        // Return the new tokens
+        c.JSON(http.StatusOK, gin.H{"token": token, "refresh_token": newRefreshToken})
+    }
 }

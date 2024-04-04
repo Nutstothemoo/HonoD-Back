@@ -13,7 +13,8 @@ func UserRoutes(incomingRoutes *gin.Engine) {
 
 	incomingRoutes.POST("/users/signup", controllers.SignUp())
 	incomingRoutes.POST("/users/login", controllers.Login())
-
+	incomingRoutes.POST("/refresh-token", controllers.RefreshToken())
+	
 	// Authenticated routes
 
 	authGroup := incomingRoutes.Group("/users")
